@@ -48,7 +48,7 @@ theme:
     text: Roboto
     code: Fira Code
   icon:
-    repo: fontawesome/brands/gitlab
+    repo: fontawesome/brands/github
 extra:
   version:
     provider: mike
