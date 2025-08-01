@@ -44,9 +44,9 @@ jobs:
         id: version
         run: |
           VERSION=$(uv version --short)
-          status=0
-          git tag -l | grep -P "^$VERSION$" || status=1
-          if [[ $status == 0 ]];
+          TAG_EXISTS=0
+          git tag -l | grep -P "^$VERSION$" || TAG_EXISTS=1
+          if [[ $TAG_EXISTS == 0 ]];
           then
             echo "::error::Tag $VERSION already exists. Please increase project version in pyproject.toml."
             exit 1
