@@ -15,10 +15,10 @@ license-files = ["LICENSE"]
 dependencies = []
 
 [project.urls]
-Homepage = "https://hevaweb.github.io/opentak/latest/"
-Documentation = "https://hevaweb.github.io/opentak/latest/"
-Repository = "https://github.com/HEVAWEB/opentak" 
-Issues = "https://github.com/HEVAWEB/opentak/issues"
+Homepage = "https://heva-io.github.io/opentak/latest/"
+Documentation = "https://heva-io.github.io/opentak/latest/"
+Repository = "https://github.com/heva-io/opentak" 
+Issues = "https://github.com/heva-io/opentak/issues"
 
 [dependency-groups]
 dev = [

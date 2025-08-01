@@ -8,6 +8,8 @@ on:
 jobs:
   # Publish documentation as github pages
   publish-doc:
+    permissions:
+      contents: write
     runs-on: ubuntu-latest
     steps:
       - name: Checkout

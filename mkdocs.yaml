@@ -1,6 +1,7 @@
 site_name: opentak
+site_url: https://heva-io.github.io/opentak/latest/
 repo_name: OpenTAK
-repo_url: https://github.com/HEVAWEB/opentak
+repo_url: https://github.com/heva-io/opentak
 watch:
   - opentak
   - docs

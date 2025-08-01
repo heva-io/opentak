@@ -1,6 +1,6 @@
 # opentak
 
-Project documentation: https://hevaweb.github.io/opentak/latest/
+Project documentation: https://heva-io.github.io/opentak/latest/
 
 ## Contributing
 
