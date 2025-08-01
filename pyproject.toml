@@ -1,0 +1,74 @@
+[project]
+name = "opentak"
+version = "0.0.1"
+description = "TODO"
+authors = [
+  { name="Marie-Ange RASENDRA", email="marie-ange.rasendra@heva-data.com" },
+  { name="Lilian SFEIR", email="lilian.sfeir@heva-data.com" },
+  { name="Jules CHASSETUILLIER", email="jules.chassetuillier@heva-data.com" },
+  { name="Quentin FLEURENT-NAMBOT", email="quentin.fleurent-nambot@heva-data.com" },
+]
+readme = "README.md"
+requires-python = ">=3.10"
+license = "MPL-2.0"
+license-files = ["LICENSE"]
+dependencies = []
+
+[project.urls]
+Homepage = "https://heva-io.github.io/opentak/latest/"
+Documentation = "https://heva-io.github.io/opentak/latest/"
+Repository = "https://github.com/heva-io/opentak" 
+Issues = "https://github.com/heva-io/opentak/issues"
+
+[dependency-groups]
+dev = [
+    "mypy>=1.17.0, <2",
+    "pytest>=8.4.1, <9",
+    "ruff>=0.12.3, <1",
+]
+doc = [
+    "mike>=2.1.3, <3",
+    "mkdocs>=1.6.1, <2",
+    "mkdocs-gen-files>=0.5.0, <1",
+    "mkdocs-literate-nav>=0.6.2, <1",
+    "mkdocs-macros-plugin>=1.3.7, <2",
+    "mkdocs-material>=9.6.15, <10",
+    "mkdocstrings[python]>=0.29.1, <1",
+]
+
+[tool.pytest.ini_options]
+pythonpath = [
+  "."
+]
+
+[tool.ruff.lint]
+select = ["ALL"]
+exclude = ["tests/**", "docs/**", "scripts/**"]
+ignore = [
+  "ANN",
+  "BLE",
+  "C90",
+  "COM812",
+  "D10",
+  "D203",
+  "D213",
+  "DTZ",
+  "EM",
+  "EXE",
+  "FA",
+  "FBT",
+  "FIX",
+  "FLY",
+  "ISC",
+  "PD901",
+  "PERF203",
+  "PLR0912",
+  "PLR0913",
+  "PTH",
+  "S301",
+  "T20",
+  "TD",
+  "TRY003",
+  "PLR2004",
+  "E501"
+]
