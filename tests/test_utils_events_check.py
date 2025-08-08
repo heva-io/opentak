@@ -2,16 +2,22 @@ import numpy as np
 import pandas as pd
 import pytest
 
-import tak.utils_events.checks as checks
-import tak.utils_events.preprocessing as prep
+import opentak.utils_events.checks as checks
+import opentak.utils_events.preprocessing as prep
 
 col = ["ID_PATIENT", "TIMESTAMP", "EVT"]
 
 base_without_in = pd.DataFrame([[1, 0, "A"], [1, 2, "B"], [1, 5, "out"]], columns=col)
 base_without_out = pd.DataFrame([[1, 0, "in"], [1, 2, "B"], [1, 5, "C"]], columns=col)
-base_with_ttmt_before_in = pd.DataFrame([[1, 0, "B"], [1, 2, "in"], [1, 5, "C"], [1, 8, "out"]], columns=col)
-base_with_ttmt_after_out = pd.DataFrame([[1, 0, "in"], [1, 2, "B"], [1, 5, "out"], [1, 8, "C"]], columns=col)
-base_duplicated_rows = pd.DataFrame([[1, 0, "in"], [1, 2, "B"], [1, 2, "B"], [1, 5, "C"], [1, 8, "out"]], columns=col)
+base_with_ttmt_before_in = pd.DataFrame(
+    [[1, 0, "B"], [1, 2, "in"], [1, 5, "C"], [1, 8, "out"]], columns=col
+)
+base_with_ttmt_after_out = pd.DataFrame(
+    [[1, 0, "in"], [1, 2, "B"], [1, 5, "out"], [1, 8, "C"]], columns=col
+)
+base_duplicated_rows = pd.DataFrame(
+    [[1, 0, "in"], [1, 2, "B"], [1, 2, "B"], [1, 5, "C"], [1, 8, "out"]], columns=col
+)
 
 
 @pytest.mark.parametrize(
@@ -33,12 +39,24 @@ def test_ValueError(base, match_expected):
     # Then
 
 
-base = pd.DataFrame([[1, 0, "in"], [1, 5, "C"], [1, 2, "B"], [1, 8, "out"]], columns=col)
-base_expected = pd.DataFrame([[1, 0, "in"], [1, 2, "B"], [1, 5, "C"], [1, 8, "out"]], columns=col)
-base_first_day_ttmt = pd.DataFrame([[1, 2, "B"], [1, 2, "in"], [1, 5, "C"], [1, 8, "out"]], columns=col)
-base_first_day_ttmt_expected = pd.DataFrame([[1, 2, "in"], [1, 2, "B"], [1, 5, "C"], [1, 8, "out"]], columns=col)
-base_last_day_ttmt = pd.DataFrame([[1, 0, "in"], [1, 2, "B"], [1, 8, "out"], [1, 8, "C"]], columns=col)
-base_last_day_ttmt_expected = pd.DataFrame([[1, 0, "in"], [1, 2, "B"], [1, 8, "C"], [1, 8, "out"]], columns=col)
+base = pd.DataFrame(
+    [[1, 0, "in"], [1, 5, "C"], [1, 2, "B"], [1, 8, "out"]], columns=col
+)
+base_expected = pd.DataFrame(
+    [[1, 0, "in"], [1, 2, "B"], [1, 5, "C"], [1, 8, "out"]], columns=col
+)
+base_first_day_ttmt = pd.DataFrame(
+    [[1, 2, "B"], [1, 2, "in"], [1, 5, "C"], [1, 8, "out"]], columns=col
+)
+base_first_day_ttmt_expected = pd.DataFrame(
+    [[1, 2, "in"], [1, 2, "B"], [1, 5, "C"], [1, 8, "out"]], columns=col
+)
+base_last_day_ttmt = pd.DataFrame(
+    [[1, 0, "in"], [1, 2, "B"], [1, 8, "out"], [1, 8, "C"]], columns=col
+)
+base_last_day_ttmt_expected = pd.DataFrame(
+    [[1, 0, "in"], [1, 2, "B"], [1, 8, "C"], [1, 8, "out"]], columns=col
+)
 
 
 @pytest.mark.parametrize(
@@ -58,9 +76,15 @@ def test_ordonne_checks(base, base_expected):
     assert ((base_ordonnee == base_expected).all()).all()
 
 
-base_double_delivery_same_day = pd.DataFrame([[1, 0, "in"], [1, 2, "B"], [1, 2, "C"], [1, 8, "out"]], columns=col)
-base_with_ttmt_on_in = pd.DataFrame([[1, 0, "in"], [1, 0, "B"], [1, 2, "C"], [1, 8, "out"]], columns=col)
-base_with_ttmt_on_out = pd.DataFrame([[1, 0, "in"], [1, 2, "B"], [1, 8, "C"], [1, 8, "out"]], columns=col)
+base_double_delivery_same_day = pd.DataFrame(
+    [[1, 0, "in"], [1, 2, "B"], [1, 2, "C"], [1, 8, "out"]], columns=col
+)
+base_with_ttmt_on_in = pd.DataFrame(
+    [[1, 0, "in"], [1, 0, "B"], [1, 2, "C"], [1, 8, "out"]], columns=col
+)
+base_with_ttmt_on_out = pd.DataFrame(
+    [[1, 0, "in"], [1, 2, "B"], [1, 8, "C"], [1, 8, "out"]], columns=col
+)
 
 
 @pytest.mark.parametrize(
@@ -82,8 +106,12 @@ def test_mutiple_delivrance_on_same_date(base, multiple_delivery_expected):
 
 def test_stable_sort():
     # Given
-    base = pd.DataFrame([[1, 0, "in"], [1, 5, "C"], [1, 2, "B"], [1, 8, "out"]], columns=col)
-    expected = pd.DataFrame([[1, 0, "in"], [1, 2, "B"], [1, 5, "C"], [1, 8, "out"]], columns=col)
+    base = pd.DataFrame(
+        [[1, 0, "in"], [1, 5, "C"], [1, 2, "B"], [1, 8, "out"]], columns=col
+    )
+    expected = pd.DataFrame(
+        [[1, 0, "in"], [1, 2, "B"], [1, 5, "C"], [1, 8, "out"]], columns=col
+    )
     # When
     sorted_base = prep.stable_sort(base)
     # Then
@@ -92,8 +120,12 @@ def test_stable_sort():
 
 def test_stable_mergesort():
     # Given
-    base = pd.DataFrame([[1, 0, "in"], [1, 0, "C"], [1, 2, "B"], [1, 8, "out"]], columns=col)
-    expected = pd.DataFrame([[1, 0, "in"], [1, 0, "C"], [1, 2, "B"], [1, 8, "out"]], columns=col)
+    base = pd.DataFrame(
+        [[1, 0, "in"], [1, 0, "C"], [1, 2, "B"], [1, 8, "out"]], columns=col
+    )
+    expected = pd.DataFrame(
+        [[1, 0, "in"], [1, 0, "C"], [1, 2, "B"], [1, 8, "out"]], columns=col
+    )
     # When
     sorted_base = prep.stable_sort(base)
     # Then

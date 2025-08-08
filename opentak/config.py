@@ -1,6 +1,6 @@
 from typing import Literal
 
-from tak.logger import logger
+from opentak.logger import logger
 
 
 class Config:
@@ -20,6 +20,8 @@ class Config:
         :param lang: Language used for reports.
         :param round_digits: Number of digits used by default when rounding numbers.
         """
-        logger.info_heva("Initialize config with lang=%s, round_digits=%s", lang, round_digits)
+        logger.info_heva(
+            "Initialize config with lang=%s, round_digits=%s", lang, round_digits
+        )
         Config.lang = lang
         Config.round_digits = round_digits

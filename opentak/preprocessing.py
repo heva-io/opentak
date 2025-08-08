@@ -7,9 +7,9 @@ import numpy as np
 import numpy.typing as npt
 import pandas as pd
 
-from tak.clustering import Tak, TakHca
-from tak.utils_events import checks
-from tak.utils_events.utils import add_evt_duration, stable_sort
+from opentak.clustering import Tak, TakHca
+from opentak.utils_events import checks
+from opentak.utils_events.utils import add_evt_duration, stable_sort
 
 pd.set_option("future.no_silent_downcasting", True)
 
@@ -143,7 +143,9 @@ class TakBuilder:
         """
         sorted_evt = sorted(set(self.base["EVT"].unique()) - set(self.dict_label_id))
 
-        events_ids = {evt: i for i, evt in enumerate(sorted_evt, start=len(self.dict_label_id))}
+        events_ids = {
+            evt: i for i, evt in enumerate(sorted_evt, start=len(self.dict_label_id))
+        }
 
         self.dict_label_id.update(events_ids)
 
@@ -153,7 +155,9 @@ class TakBuilder:
         We place this new event before the 'in' event to mark the beginning
         of each patient's timeline.
         """
-        base_start = self.base.loc[self.base["EVT"].eq("in"), ["ID_PATIENT", "TIMESTAMP", "EVT"]].copy()
+        base_start = self.base.loc[
+            self.base["EVT"].eq("in"), ["ID_PATIENT", "TIMESTAMP", "EVT"]
+        ].copy()
 
         base_start["EVT"] = "start"
         base_start["TIMESTAMP"] = 0
@@ -166,7 +170,9 @@ class TakBuilder:
 
         This marks the end of the observation period for each patient's timeline.
         """
-        base_end = self.base.loc[self.base["EVT"].isin(("out", "death")), ["ID_PATIENT", "TIMESTAMP", "EVT"]].copy()
+        base_end = self.base.loc[
+            self.base["EVT"].isin(("out", "death")), ["ID_PATIENT", "TIMESTAMP", "EVT"]
+        ].copy()
 
         base_end["EVT"] = "end"
         base_end["TIMESTAMP"] = self.max_days
@@ -184,20 +190,26 @@ class TakBuilder:
         :raises ValueError: if patient durations are invalid or patients have different sequence lengths
         """
         list_patients: list[np.ndarray] = []
-        for id_group, df_group in self.base.loc[self.base["EVT"] != "end"].groupby("ID_PATIENT"):
+        for id_group, df_group in self.base.loc[self.base["EVT"] != "end"].groupby(
+            "ID_PATIENT"
+        ):
             evt = list(df_group["EVT"].replace(self.dict_label_id).astype("int"))
             durations = list(df_group["evt_duration"])
 
             # TODO check duration type prior to array creation
-            if not all(isinstance(duration, (int, float)) for duration in durations) or any(
-                duration < 0 for duration in durations
-            ):
-                raise ValueError(f"Patient {id_group} has a non numeric or negative duration: {{df_group}}")
+            if not all(
+                isinstance(duration, (int, float)) for duration in durations
+            ) or any(duration < 0 for duration in durations):
+                raise ValueError(
+                    f"Patient {id_group} has a non numeric or negative duration: {{df_group}}"
+                )
 
             patient_sequence = np.repeat(evt, durations)
 
             # TODO remove this check, we should not need it at this stage
-            has_different_size = list_patients != [] and len(patient_sequence) != len(list_patients[-1])
+            has_different_size = list_patients != [] and len(patient_sequence) != len(
+                list_patients[-1]
+            )
             if has_different_size:
                 raise ValueError(
                     f"Patient {id_group} has length {len(patient_sequence)} "

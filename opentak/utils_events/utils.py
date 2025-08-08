@@ -1,9 +1,9 @@
 import numpy as np
 import pandas as pd
 
-from tak.logger import logger
-from tak.utils_events.checks import Checks
-from tak.utils_events.preprocessing import stable_sort
+from opentak.logger import logger
+from opentak.utils_events.checks import Checks
+from opentak.utils_events.preprocessing import stable_sort
 
 
 def get_evt_log_with_frosenset_evt(
@@ -27,7 +27,9 @@ def get_evt_log_with_frosenset_evt(
     # ne travailler que sur les lignes qui nous interessent
     log_duplicated = log[log.duplicated(subset=["ID_PATIENT", "TIMESTAMP"], keep=False)]
 
-    log_duplicated_grouped = log_duplicated.groupby(["ID_PATIENT", "TIMESTAMP"])["EVT"].agg(frozenset)
+    log_duplicated_grouped = log_duplicated.groupby(["ID_PATIENT", "TIMESTAMP"])[
+        "EVT"
+    ].agg(frozenset)
 
     return log_duplicated_grouped
 
@@ -57,7 +59,9 @@ def regroup_evt(
         # list_fzset_to_be_regrouped: il ne sera pas pris en compte dans
         # list_fzset_to_be_regrouped
         if list_ignored_evt:
-            elmt_of_list_fzset_to_be_regrouped = {x for fzset in list_fzset_to_be_regrouped for x in fzset}
+            elmt_of_list_fzset_to_be_regrouped = {
+                x for fzset in list_fzset_to_be_regrouped for x in fzset
+            }
             list_elmt_pb = elmt_of_list_fzset_to_be_regrouped & set(list_ignored_evt)
             if len(list_elmt_pb):
                 logger.warning(
@@ -72,8 +76,12 @@ def regroup_evt(
     if len(frozen_set):
         if list_ignored_evt is None:
             list_ignored_evt = []
-        log_ignored = log_cop[log_cop["EVT"].isin(list_ignored_evt)].set_index(["ID_PATIENT", "TIMESTAMP"])
-        log_not_ignored = log_cop[~log_cop["EVT"].isin(list_ignored_evt)].set_index(["ID_PATIENT", "TIMESTAMP"])
+        log_ignored = log_cop[log_cop["EVT"].isin(list_ignored_evt)].set_index(
+            ["ID_PATIENT", "TIMESTAMP"]
+        )
+        log_not_ignored = log_cop[~log_cop["EVT"].isin(list_ignored_evt)].set_index(
+            ["ID_PATIENT", "TIMESTAMP"]
+        )
 
         frozen_set["EVT"] = frozen_set["EVT"].apply(list).apply(sorted).apply(sep.join)
         log_not_ignored.loc[frozen_set.index, "EVT"] = frozen_set["EVT"]
@@ -101,7 +109,9 @@ def order_in_first_out_last(log: pd.DataFrame) -> pd.DataFrame:
     """
     log_in = log[log["EVT"].eq("in")]
     log_out = log[log["EVT"].eq("out")]
-    log_other = log[~log["EVT"].isin(["in", "out"])].sort_values(["ID_PATIENT", "TIMESTAMP"])
+    log_other = log[~log["EVT"].isin(["in", "out"])].sort_values(
+        ["ID_PATIENT", "TIMESTAMP"]
+    )
     log_reorder = stable_sort(pd.concat([log_in, log_other, log_out]))
 
     return log_reorder
@@ -159,7 +169,10 @@ def deal_with_double_delivrance(base, reset_index=True) -> pd.DataFrame:
     """
     base_cop = base.copy()
     try:
-        pd.testing.assert_frame_equal(base_cop, base_cop.sort_values(["ID_PATIENT", "TIMESTAMP"], kind="mergesort"))
+        pd.testing.assert_frame_equal(
+            base_cop,
+            base_cop.sort_values(["ID_PATIENT", "TIMESTAMP"], kind="mergesort"),
+        )
     except AssertionError:
         logger.warning(
             "The base was not sorted according to 'ID_PATIENT' and 'TIMESTAMP', it has been sorted \
@@ -172,14 +185,22 @@ def deal_with_double_delivrance(base, reset_index=True) -> pd.DataFrame:
         base_cop["ID_PATIENT"].eq(base_cop["ID_PATIENT"].shift(-1))
         & base_cop["TIMESTAMP"].eq(base_cop["TIMESTAMP"].shift(-1))
         & base_cop["EVT"].ne(base_cop["EVT"].shift(-1))
-        & (base_cop["EVT"].eq(base_cop["EVT"].shift(-2)) | base_cop["EVT"].shift(+1).eq(base_cop["EVT"].shift(-1)))
-        & ((base_cop["EVT"] != base_cop["EVT"].shift(+1)) & (base_cop["EVT"].shift(-1) != (base_cop["EVT"].shift(-2))))
+        & (
+            base_cop["EVT"].eq(base_cop["EVT"].shift(-2))
+            | base_cop["EVT"].shift(+1).eq(base_cop["EVT"].shift(-1))
+        )
+        & (
+            (base_cop["EVT"] != base_cop["EVT"].shift(+1))
+            & (base_cop["EVT"].shift(-1) != (base_cop["EVT"].shift(-2)))
+        )
     )
 
     # Switcher !
     conditions = conditions.reset_index(name="ttmt_to_move_down")
     conditions["new_index"] = conditions["index"]
-    conditions["ttmt_to_move_up"] = conditions["ttmt_to_move_down"].shift(+1).fillna(False)
+    conditions["ttmt_to_move_up"] = (
+        conditions["ttmt_to_move_down"].shift(+1).fillna(False)
+    )
     conditions.loc[conditions["ttmt_to_move_down"], "new_index"] = conditions.loc[
         conditions["ttmt_to_move_up"], "index"
     ].to_numpy()
@@ -210,7 +231,9 @@ def add_evt_duration(base: pd.DataFrame, check=True) -> pd.DataFrame:
     base_copy["evt_duration"] = base_copy["TIMESTAMP"].shift(-1).diff().copy()
 
     # gerer le premier element du dataframe
-    base_copy["evt_duration"].iloc[0] = base_copy["TIMESTAMP"].iloc[1] - base_copy["TIMESTAMP"].iloc[0]
+    base_copy["evt_duration"].iloc[0] = (
+        base_copy["TIMESTAMP"].iloc[1] - base_copy["TIMESTAMP"].iloc[0]
+    )
 
     # gerer les doubles délivrances le même jour :
     # diviser la durée de traitement par le nombre de délivrance (2)
@@ -224,9 +247,7 @@ def add_evt_duration(base: pd.DataFrame, check=True) -> pd.DataFrame:
     )
     durees_totales = base_copy.loc[conditions, "evt_duration"].to_numpy()
     if len(durees_totales):
-        warn1 = (
-            "Careful ! Some EVT (other than in, out and death) appeared at the same TIMESTAMP for a same ID_PATIENT. "
-        )
+        warn1 = "Careful ! Some EVT (other than in, out and death) appeared at the same TIMESTAMP for a same ID_PATIENT. "
         warn2 = (
             "For these co-occuring EVT, the duration of each of these 2 EVT will be half the "
             "duration separating them from the next EVT of this patient. "
@@ -236,9 +257,14 @@ def add_evt_duration(base: pd.DataFrame, check=True) -> pd.DataFrame:
             "A: 2T, B: 3T, and the timeline from D1 will be A-A-B-B-B-C"
         )
         logger.warning(warn1 + warn2 + warn3)
-    durees_divisees_par_deux = np.ceil(base_copy.loc[conditions, "evt_duration"].to_numpy() / 2)
+    durees_divisees_par_deux = np.ceil(
+        base_copy.loc[conditions, "evt_duration"].to_numpy() / 2
+    )
     complementaire_des_durees = [
-        tot - div_par_deux for tot, div_par_deux in zip(durees_totales, durees_divisees_par_deux, strict=False)
+        tot - div_par_deux
+        for tot, div_par_deux in zip(
+            durees_totales, durees_divisees_par_deux, strict=False
+        )
     ]
     base_copy.loc[conditions, "evt_duration"] = durees_divisees_par_deux
     conditions2 = (
@@ -253,7 +279,9 @@ def add_evt_duration(base: pd.DataFrame, check=True) -> pd.DataFrame:
         base_copy.loc[conditions2, "evt_duration"] = complementaire_des_durees
     except ValueError as exc:
         pat = base_copy.loc[conditions2, "ID_PATIENT"].unique()
-        raise ValueError(f"Problème dans les durées de traitements, regarder les patients {pat}") from exc
+        raise ValueError(
+            f"Problème dans les durées de traitements, regarder les patients {pat}"
+        ) from exc
 
     # Mettre des NaN à la dernière ligne de chaque patient
     base_copy.loc[
@@ -274,6 +302,10 @@ def _check_or_not(base: pd.DataFrame, check=True) -> pd.DataFrame:
 
     ..note: Attention, que check soit a True ou à False, base est réordonnée
     """
-    base_copy = Checks(base).base if ("start" not in base["EVT"].unique() and check) else stable_sort(base)
+    base_copy = (
+        Checks(base).base
+        if ("start" not in base["EVT"].unique() and check)
+        else stable_sort(base)
+    )
 
     return base_copy

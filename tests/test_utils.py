@@ -1,7 +1,7 @@
 import pandas as pd
 import pytest
 
-import tak.utils_events.utils as utils
+import opentak.utils_events.utils as utils
 
 COLS = ["ID_PATIENT", "TIMESTAMP", "EVT"]
 
@@ -157,9 +157,9 @@ def test_get_evt_log_with_frosenset_evt():
         [[1, "A", 2], [1, "B", 3], [1, "A", 6], [1, "B", 6], [2, "B", 3]],
         columns=["ID_PATIENT", "EVT", "TIMESTAMP"],
     )
-    log_expected = pd.DataFrame([[1, frozenset({"A", "B"}), 6]], columns=["ID_PATIENT", "EVT", "TIMESTAMP"]).set_index(
-        ["ID_PATIENT", "TIMESTAMP"]
-    )
+    log_expected = pd.DataFrame(
+        [[1, frozenset({"A", "B"}), 6]], columns=["ID_PATIENT", "EVT", "TIMESTAMP"]
+    ).set_index(["ID_PATIENT", "TIMESTAMP"])
     # When
     log_result = utils.get_evt_log_with_frosenset_evt(log).to_frame()
     # Then

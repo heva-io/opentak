@@ -5,12 +5,18 @@ from unittest.mock import patch
 
 import pytest
 
-import tak.logger
-from tak.logger import logger
+import opentak.logger
+from opentak.logger import logger
 
 
 def test_log_levels():
-    assert logging.DEBUG < logging.DEBUG_HEVA < logging.INFO < logging.INFO_HEVA < logging.WARNING
+    assert (
+        logging.DEBUG
+        < logging.DEBUG_HEVA
+        < logging.INFO
+        < logging.INFO_HEVA
+        < logging.WARNING
+    )
 
 
 def test_logger(caplog):

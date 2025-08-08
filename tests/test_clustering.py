@@ -6,7 +6,7 @@ import pandas as pd
 import pytest
 from more_itertools import flatten
 
-from tak import TakBuilder
+from opentak import TakBuilder
 
 col = ["ID_PATIENT", "TIMESTAMP", "EVT"]
 RANDOM_STATE = 42

@@ -3,21 +3,25 @@ from unittest.mock import Mock, patch
 import numpy as np
 import pandas as pd
 import pytest
-from tak.utils_events.preprocessing import stable_sort
+from opentak.utils_events.preprocessing import stable_sort
 
-from tak.clustering import TakHca
-from tak.preprocessing import TakBuilder, _validate_args
+from opentak.clustering import TakHca
+from opentak.preprocessing import TakBuilder, _validate_args
 
 RANDOM_STATE = 42
 
 col = ["ID_PATIENT", "TIMESTAMP", "EVT"]
 
-base_in_at_0 = pd.DataFrame([[1, 0, "in"], [1, 1, "C"], [1, 2, "B"], [1, 8, "out"]], columns=col)
+base_in_at_0 = pd.DataFrame(
+    [[1, 0, "in"], [1, 1, "C"], [1, 2, "B"], [1, 8, "out"]], columns=col
+)
 base_expected_in_at_0 = pd.DataFrame(
     [[1, 0, "start"], [1, 0, "in"], [1, 1, "C"], [1, 2, "B"], [1, 8, "out"]],
     columns=col,
 )
-base_in_at_1 = pd.DataFrame([[1, 1, "in"], [1, 1, "C"], [1, 2, "B"], [1, 8, "out"]], columns=col)
+base_in_at_1 = pd.DataFrame(
+    [[1, 1, "in"], [1, 1, "C"], [1, 2, "B"], [1, 8, "out"]], columns=col
+)
 base_expected_in_at_1 = pd.DataFrame(
     [[1, 0, "start"], [1, 1, "in"], [1, 1, "C"], [1, 2, "B"], [1, 8, "out"]],
     columns=col,
@@ -38,14 +42,22 @@ def test_add_start(base, base_expected):
     pd.testing.assert_frame_equal(base_expected, stable_sort(tak_builder.base))
 
 
-base = pd.DataFrame([[1, 0, "in"], [1, 1, "C"], [1, 2, "B"], [1, 8, "out"]], columns=col)
-base_expected = pd.DataFrame([[1, 0, "in"], [1, 1, "C"], [1, 2, "B"], [1, 8, "out"], [1, 28, "end"]], columns=col)
-base_out_at_nbjoursend = pd.DataFrame([[1, 0, "in"], [1, 1, "C"], [1, 2, "B"], [1, 8, "out"]], columns=col)
+base = pd.DataFrame(
+    [[1, 0, "in"], [1, 1, "C"], [1, 2, "B"], [1, 8, "out"]], columns=col
+)
+base_expected = pd.DataFrame(
+    [[1, 0, "in"], [1, 1, "C"], [1, 2, "B"], [1, 8, "out"], [1, 28, "end"]], columns=col
+)
+base_out_at_nbjoursend = pd.DataFrame(
+    [[1, 0, "in"], [1, 1, "C"], [1, 2, "B"], [1, 8, "out"]], columns=col
+)
 base_out_at_nbjoursend_expected = pd.DataFrame(
     [[1, 0, "in"], [1, 1, "C"], [1, 2, "B"], [1, 8, "out"], [1, 8, "end"]], columns=col
 )
 
-base_death = pd.DataFrame([[1, 1, "in"], [1, 1, "C"], [1, 2, "B"], [1, 8, "death"]], columns=col)
+base_death = pd.DataFrame(
+    [[1, 1, "in"], [1, 1, "C"], [1, 2, "B"], [1, 8, "death"]], columns=col
+)
 base_death_expected = pd.DataFrame(
     [[1, 1, "in"], [1, 1, "C"], [1, 2, "B"], [1, 8, "death"], [1, 12, "end"]],
     columns=col,
@@ -106,7 +118,9 @@ base_plusieurs_patients = pd.DataFrame(
     columns=col + ["evt_duration"],
 )
 
-array_plusieurs_patients_expected = np.array([[0, 7, 6, 6, 6, 6, 6, 6, 2], [0, 0, 0, 0, 0, 1, 1, 1, 6]])
+array_plusieurs_patients_expected = np.array(
+    [[0, 7, 6, 6, 6, 6, 6, 6, 2], [0, 0, 0, 0, 0, 1, 1, 1, 6]]
+)
 
 default_evts = ["start", "in", "out", "death", "end", "nothing"]
 

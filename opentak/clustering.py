@@ -80,8 +80,13 @@ class Tak:
         """
         index_map = {pat: idx for idx, pat in enumerate(self.index_patients)}
 
-        list_ids_cluster = list_ids_cluster if list_ids_cluster is not None else self.list_ids_clusters
-        list_indices_cluster = [np.array([index_map[pat] for pat in cluster]) for cluster in list_ids_cluster]
+        list_ids_cluster = (
+            list_ids_cluster if list_ids_cluster is not None else self.list_ids_clusters
+        )
+        list_indices_cluster = [
+            np.array([index_map[pat] for pat in cluster])
+            for cluster in list_ids_cluster
+        ]
         return list_indices_cluster
 
     def get_sorted_array(self, list_ids_cluster: list | None = None):
@@ -91,7 +96,9 @@ class Tak:
         :return: list of arrays containing sorted sequences for each cluster
         """
         list_indices_cluster = self.get_list_indices_cluster(list_ids_cluster)
-        sorted_array = [self.array[indices_cluster] for indices_cluster in list_indices_cluster]
+        sorted_array = [
+            self.array[indices_cluster] for indices_cluster in list_indices_cluster
+        ]
         return sorted_array
 
 
@@ -157,7 +164,9 @@ class TakHca(Tak):
             if self.pdist is not None:
                 pdist = self.pdist
             else:
-                raise AttributeError("You should compute a pdist first with .compute_pdist()")
+                raise AttributeError(
+                    "You should compute a pdist first with .compute_pdist()"
+                )
         return pdist
 
     def _get_linkage(
@@ -215,17 +224,23 @@ class TakHca(Tak):
 
             # if a list of patient is provided, the pdist is already computed
             if self.pdist_uncondensed is None:
-                raise ValueError("self.pdist_uncondensed is None, call self.compute_pdist() first")
+                raise ValueError(
+                    "self.pdist_uncondensed is None, call self.compute_pdist() first"
+                )
             pdist_uncondensed_ids = self.pdist_uncondensed[patient_ids][:, patient_ids]
             pdist = spatial.distance.squareform(pdist_uncondensed_ids)
-        linkage = self._get_linkage(pdist=pdist, method=method, optimal_ordering=optimal_ordering)
+        linkage = self._get_linkage(
+            pdist=pdist, method=method, optimal_ordering=optimal_ordering
+        )
 
         if patient_ids is None or len(patient_ids) == len(self.index_patients):
             self.linkage_total = linkage
 
         list_indices_ordered = cluster.hierarchy.leaves_list(linkage)
 
-        patients_groups_id = cluster.hierarchy.cut_tree(linkage, n_clusters=n_clusters)[:, 0]
+        patients_groups_id = cluster.hierarchy.cut_tree(linkage, n_clusters=n_clusters)[
+            :, 0
+        ]
 
         return patients_groups_id, list_indices_ordered
 
@@ -271,7 +286,9 @@ class TakHca(Tak):
 
         # perform HCA clustering
         labels, list_indices = self.get_clusters(
-            n_clusters=n_clusters, method=method, optimal_ordering=global_optimal_ordering
+            n_clusters=n_clusters,
+            method=method,
+            optimal_ordering=global_optimal_ordering,
         )
 
         list_ids_clusters = []
@@ -284,20 +301,31 @@ class TakHca(Tak):
             if not global_optimal_ordering:
                 # if optimal ordering is not perform on all patients, perform it individually on each cluster
                 _, list_order_pat_cluster = self.get_clusters(
-                    n_clusters=1, method=method, patient_ids=list_idx_cluster, optimal_ordering=optimal_ordering
+                    n_clusters=1,
+                    method=method,
+                    patient_ids=list_idx_cluster,
+                    optimal_ordering=optimal_ordering,
                 )
             else:
                 # retrieve order from global order
-                cluster_positions = {idx: pos for pos, idx in enumerate(list_idx_cluster)}
+                cluster_positions = {
+                    idx: pos for pos, idx in enumerate(list_idx_cluster)
+                }
                 # position of base labels in sorted labels
                 list_order_pat_cluster = np.array(
-                    [cluster_positions[idx] for idx in list_indices if idx in cluster_positions]
+                    [
+                        cluster_positions[idx]
+                        for idx in list_indices
+                        if idx in cluster_positions
+                    ]
                 )
 
             # Get corresponding patient ids
             list_id_index_cluster = self.index_patients[labels == label]
             # sort these patients according to the optimal ordering
-            list_id_index_cluster_ordered = list_id_index_cluster[list_order_pat_cluster]
+            list_id_index_cluster_ordered = list_id_index_cluster[
+                list_order_pat_cluster
+            ]
 
             # Save results for this cluster in a list,
             # to go on with the next cluster

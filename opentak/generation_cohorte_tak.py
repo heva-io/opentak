@@ -3,7 +3,9 @@ import pandas as pd
 
 
 class GenerationCohorteTAK:
-    def __init__(self, nb_patients=500, nb_jours_end=365, random_state: int | None = None):
+    def __init__(
+        self, nb_patients=500, nb_jours_end=365, random_state: int | None = None
+    ):
         """Initialise le nombre de patients et la longueur max du suivi.
 
         :param nb_patients: nombre de patients dans la cohorte
@@ -28,7 +30,9 @@ class GenerationCohorteTAK:
         nb_delivrances_max = int(self.nb_jours_end / (pos_moyenne - pos_std / 2))
 
         # Calcul colonne NBJOURS à base de posologie
-        pos_reelles = self.rng.normal(pos_moyenne, pos_std, size=(self.nb_patients, nb_delivrances_max)).astype(int)
+        pos_reelles = self.rng.normal(
+            pos_moyenne, pos_std, size=(self.nb_patients, nb_delivrances_max)
+        ).astype(int)
         pos_reelles = np.where(pos_reelles <= 0, 1, pos_reelles)
         nbjours_not_flatten = np.cumsum(pos_reelles, axis=1)
         nbjours = nbjours_not_flatten.flatten()
@@ -42,7 +46,9 @@ class GenerationCohorteTAK:
 
         # enlever les nbjours plus tardifs que nb_jours_max
         self.base = base[base["TIMESTAMP"].le(self.nb_jours_end)]
-        self.nb_rows_per_patient = self.base.groupby("ID_PATIENT").count()["TIMESTAMP"].to_numpy()
+        self.nb_rows_per_patient = (
+            self.base.groupby("ID_PATIENT").count()["TIMESTAMP"].to_numpy()
+        )
 
         # renvoie la base
         return self.base
@@ -69,12 +75,18 @@ class GenerationCohorteTAK:
             end_period_switch = int(2 * self.nb_jours_end / 3)
 
         # calcul de la distribution du jours de changement vers nom_traitement
-        distrib_nbjours_switch = self.rng.integers(start_period_switch, end_period_switch, size=self.nb_patients)
+        distrib_nbjours_switch = self.rng.integers(
+            start_period_switch, end_period_switch, size=self.nb_patients
+        )
 
         # Applique le switch a proportion_of_cohort et ajoute les lignes dans le dataframe
-        return self._add_switch(nom_traitement, distrib_nbjours_switch, proportion_of_cohort)
+        return self._add_switch(
+            nom_traitement, distrib_nbjours_switch, proportion_of_cohort
+        )
 
-    def add_switch_gaussien(self, nom_traitement, mean=None, std=None, proportion_of_cohort=1):
+    def add_switch_gaussien(
+        self, nom_traitement, mean=None, std=None, proportion_of_cohort=1
+    ):
         """Add a switch to the drug nom_traitement, with a Gaussian distribution for the days on which it appears.
 
         :param nom_traitement: name of the drug
@@ -93,7 +105,9 @@ class GenerationCohorteTAK:
         distrib_nbjours_switch = self.rng.normal(mean, std, size=self.nb_patients)
 
         # Applique le switch a proportion_of_cohort et ajoute les lignes dans le dataframe
-        return self._add_switch(nom_traitement, distrib_nbjours_switch, proportion_of_cohort)
+        return self._add_switch(
+            nom_traitement, distrib_nbjours_switch, proportion_of_cohort
+        )
 
     def add_drug_holidays(
         self,
@@ -125,8 +139,12 @@ class GenerationCohorteTAK:
             duration_dh_max = int(1.2 * self.nb_jours_end / 6)
 
         # calcul de la distribution du jours d'arret de traitement
-        distrib_nbjours_start_dh = self.rng.integers(start_dh_min, start_dh_max, size=self.nb_patients)
-        duration_dh = self.rng.integers(duration_dh_min, duration_dh_max, size=self.nb_patients)
+        distrib_nbjours_start_dh = self.rng.integers(
+            start_dh_min, start_dh_max, size=self.nb_patients
+        )
+        duration_dh = self.rng.integers(
+            duration_dh_min, duration_dh_max, size=self.nb_patients
+        )
         distrib_nbjours_end_dh = distrib_nbjours_start_dh + duration_dh
 
         # checks que proportion_of_cohort appartient bien au segment [0,1]
@@ -142,8 +160,12 @@ class GenerationCohorteTAK:
         distrib_nbjours_end_dh[index_droped] = distrib_nbjours_start_dh[index_droped]
 
         # Ajout des lignes de nom_traitement correpondant au switch dans la base
-        self.base["nbjours_start_dh"] = np.repeat(distrib_nbjours_start_dh, self.nb_rows_per_patient)
-        self.base["nbjours_end_dh"] = np.repeat(distrib_nbjours_end_dh, self.nb_rows_per_patient)
+        self.base["nbjours_start_dh"] = np.repeat(
+            distrib_nbjours_start_dh, self.nb_rows_per_patient
+        )
+        self.base["nbjours_end_dh"] = np.repeat(
+            distrib_nbjours_end_dh, self.nb_rows_per_patient
+        )
         self.base = self.base[
             self.base["TIMESTAMP"].le(self.base["nbjours_start_dh"])
             | self.base["TIMESTAMP"].ge(self.base["nbjours_end_dh"])
@@ -156,7 +178,9 @@ class GenerationCohorteTAK:
         return self.base
 
     def _actualiser_nb_rows_per_patient(self):
-        self.nb_rows_per_patient = self.base.groupby("ID_PATIENT").count()["TIMESTAMP"].to_numpy()
+        self.nb_rows_per_patient = (
+            self.base.groupby("ID_PATIENT").count()["TIMESTAMP"].to_numpy()
+        )
 
     def _add_switch(self, nom_traitement, distrib_nbjours_switch, proportion_of_cohort):
         """Ajoute un switch vers le medicament nom_traitement.
@@ -178,8 +202,12 @@ class GenerationCohorteTAK:
         distrib_nbjours_switch[index_droped] = self.nb_jours_end + 1
 
         # Ajout des lignes de nom_traitement coorepondant au switch dans la base
-        self.base["switch"] = np.repeat(distrib_nbjours_switch, self.nb_rows_per_patient)
-        self.base.loc[self.base["switch"].le(self.base["TIMESTAMP"]), "EVT"] = nom_traitement
+        self.base["switch"] = np.repeat(
+            distrib_nbjours_switch, self.nb_rows_per_patient
+        )
+        self.base.loc[self.base["switch"].le(self.base["TIMESTAMP"]), "EVT"] = (
+            nom_traitement
+        )
         self.base = self.base.drop("switch", axis=1)
         return self.base
 
@@ -189,7 +217,9 @@ class GenerationCohorteTAK:
         :param proba_suppression_delivery: proportion de délivrances à supprimer de la base
         """
         # Enlève des délivrances de manière aléatoire
-        self.base = self.base.loc[self.rng.random(len(self.base)) > proba_suppression_delivery, :]
+        self.base = self.base.loc[
+            self.rng.random(len(self.base)) > proba_suppression_delivery, :
+        ]
 
         # actualisation du nombre de lignes par patient
         self._actualiser_nb_rows_per_patient()
@@ -213,18 +243,26 @@ class GenerationCohorteTAK:
         # ajout out et death
         # TODO : mettre une variabilité possible sur le out
         base_out = pd.DataFrame(list(range(self.nb_patients)), columns=["ID_PATIENT"])
-        base_out["TIMESTAMP"] = self.rng.integers(self.nb_jours_end + 1, size=len(base_out))
-        base_out["EVT"] = self.rng.choice(["out", "death"], self.nb_patients, p=[1 - proba_death, proba_death])
+        base_out["TIMESTAMP"] = self.rng.integers(
+            self.nb_jours_end + 1, size=len(base_out)
+        )
+        base_out["EVT"] = self.rng.choice(
+            ["out", "death"], self.nb_patients, p=[1 - proba_death, proba_death]
+        )
         base_out.loc[base_out["EVT"].eq("out"), "TIMESTAMP"] = self.nb_jours_end + 1
         base_out["POSOLOGIE"] = np.nan
 
         # enlever element apparaissant après death ou out
-        self.base["end"] = np.repeat(base_out["TIMESTAMP"].values, self.nb_rows_per_patient)
+        self.base["end"] = np.repeat(
+            base_out["TIMESTAMP"].values, self.nb_rows_per_patient
+        )
         self.base = self.base[self.base["TIMESTAMP"].le(self.base["end"])]
         self.base = self.base.drop("end", axis=1)
 
         # concatenation
-        self.base = pd.concat([base_in, self.base, base_out]).sort_values(["ID_PATIENT", "TIMESTAMP"], kind="mergesort")
+        self.base = pd.concat([base_in, self.base, base_out]).sort_values(
+            ["ID_PATIENT", "TIMESTAMP"], kind="mergesort"
+        )
 
         # actualisation du nombre de lignes par patient
         self._actualiser_nb_rows_per_patient()

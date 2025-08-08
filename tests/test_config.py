@@ -1,4 +1,4 @@
-from tak.config import Config
+from opentak.config import Config
 
 
 def test_config():

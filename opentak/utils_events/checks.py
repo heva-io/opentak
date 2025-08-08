@@ -2,8 +2,8 @@ from collections import Counter
 
 import pandas as pd
 
-from tak.logger import logger
-from tak.utils_events.preprocessing import stable_sort
+from opentak.logger import logger
+from opentak.utils_events.preprocessing import stable_sort
 
 
 class Checks:
@@ -66,7 +66,9 @@ class Checks:
 
         if check_mutiple_delivrance_on_same_date:
             if not reorder:
-                raise ValueError("If check_mutiple_delivrance_on_same_date = True, reorder should be set to True")
+                raise ValueError(
+                    "If check_mutiple_delivrance_on_same_date = True, reorder should be set to True"
+                )
             self.check_mutiple_delivrance_on_same_date()
 
     def check_in_for_everybody(
@@ -78,17 +80,25 @@ class Checks:
         """
         # Recuperer liste des patients, et liste des patients ayant un 'in'
         set_patients = set(self.base["ID_PATIENT"])
-        list_patients_in = list(self.base[self.base["EVT"].eq("in")]["ID_PATIENT"].values)
+        list_patients_in = list(
+            self.base[self.base["EVT"].eq("in")]["ID_PATIENT"].values
+        )
 
         # Cas où il y a plus de in que de patients (ou alors des patients avec plusieurs in),
         # ET/OU des patients sans in
         patient_sans_in = set_patients - set(list_patients_in)
         if len(patient_sans_in):
-            raise ValueError(f"Attention : les patients {patient_sans_in} n'ont pas de 'in'")
+            raise ValueError(
+                f"Attention : les patients {patient_sans_in} n'ont pas de 'in'"
+            )
 
-        pat_plusieurs_in = {pat for pat, nb_in in Counter(list_patients_in).items() if nb_in != 1}
+        pat_plusieurs_in = {
+            pat for pat, nb_in in Counter(list_patients_in).items() if nb_in != 1
+        }
         if pat_plusieurs_in:
-            raise ValueError(f"Attention : les patients {pat_plusieurs_in} ont plusieurs 'in' chacun")
+            raise ValueError(
+                f"Attention : les patients {pat_plusieurs_in} ont plusieurs 'in' chacun"
+            )
 
     def check_out_for_everybody(
         self,
@@ -96,19 +106,29 @@ class Checks:
         """Check si tous les patients ont bien un 'out' ou un 'death' (et un unique)."""
         # Recuperer liste des patients, et liste des patients ayant un 'out' et liste des patients ayant un 'death'
         set_patients = set(self.base["ID_PATIENT"])
-        list_patients_out_by_out = list(self.base[self.base["EVT"].eq("out")]["ID_PATIENT"].values)
-        list_patients_out_by_death = list(self.base[self.base["EVT"].eq("death")]["ID_PATIENT"].values)
+        list_patients_out_by_out = list(
+            self.base[self.base["EVT"].eq("out")]["ID_PATIENT"].values
+        )
+        list_patients_out_by_death = list(
+            self.base[self.base["EVT"].eq("death")]["ID_PATIENT"].values
+        )
         list_patients_out = list_patients_out_by_out + list_patients_out_by_death
 
         # Cas où il y a plus de out/death que de patients
         # (ou alors des patients avec plusieurs out/death), ET/OU des patients sans out/death
         patient_sans_out = set_patients - set(list_patients_out)
         if len(patient_sans_out):
-            raise ValueError(f"Attention : les patients {patient_sans_out} n'ont pas de 'out'")
+            raise ValueError(
+                f"Attention : les patients {patient_sans_out} n'ont pas de 'out'"
+            )
 
-        pat_plusieurs_out = {pat for pat, nb_in in Counter(list_patients_out).items() if nb_in != 1}
+        pat_plusieurs_out = {
+            pat for pat, nb_in in Counter(list_patients_out).items() if nb_in != 1
+        }
         if pat_plusieurs_out:
-            raise ValueError(f"Attention : les patients {pat_plusieurs_out} ont plusieurs 'out' chacun")
+            raise ValueError(
+                f"Attention : les patients {pat_plusieurs_out} ont plusieurs 'out' chacun"
+            )
 
     def ordonne(
         self,
@@ -134,17 +154,23 @@ class Checks:
         """
         # repérer les patients ayant un 'in' apres leur premier traitement
         pat_in_after_treatment = self.base[
-            self.base["ID_PATIENT"].eq(self.base["ID_PATIENT"].shift(+1)) & self.base["EVT"].eq("in")
+            self.base["ID_PATIENT"].eq(self.base["ID_PATIENT"].shift(+1))
+            & self.base["EVT"].eq("in")
         ]["ID_PATIENT"].to_numpy()
 
         # S'il y en a : afficher leur premieres lignes, pour cibler le problème
         if len(pat_in_after_treatment):
-            logger.error("Les patients %s ont un 'in' apres leur premier traitement", pat_in_after_treatment)
+            logger.error(
+                "Les patients %s ont un 'in' apres leur premier traitement",
+                pat_in_after_treatment,
+            )
 
             for pat in pat_in_after_treatment:
                 logger.error(self.base[self.base["ID_PATIENT"].eq(pat)].iloc[:4, :])
 
-            raise ValueError("Il y a des patients dont le 'in' est après le premier traitement")
+            raise ValueError(
+                "Il y a des patients dont le 'in' est après le premier traitement"
+            )
 
     def check_no_out_before_treatment(
         self,
@@ -158,16 +184,22 @@ class Checks:
         """
         # repérer les patients ayant un 'out' avant leur dernier traitement
         pat_out_before_treatment = self.base[
-            self.base["ID_PATIENT"].eq(self.base["ID_PATIENT"].shift(-1)) & self.base["EVT"].eq("out")
+            self.base["ID_PATIENT"].eq(self.base["ID_PATIENT"].shift(-1))
+            & self.base["EVT"].eq("out")
         ]["ID_PATIENT"].to_numpy()
 
         # S'il y en a : afficher leur dernières lignes, pour cibler le problème
         if len(pat_out_before_treatment):
-            logger.error("Les patients %s ont un 'out' avant leur dernier traitement", pat_out_before_treatment)
+            logger.error(
+                "Les patients %s ont un 'out' avant leur dernier traitement",
+                pat_out_before_treatment,
+            )
             for pat in pat_out_before_treatment:
                 logger.error(self.base[self.base["ID_PATIENT"].eq(pat)].iloc[-4:, :])
 
-            raise ValueError("Il y a des patients dont le 'out' est avant le dernier traitement")
+            raise ValueError(
+                "Il y a des patients dont le 'out' est avant le dernier traitement"
+            )
 
     def check_no_duplicated_rows(
         self,
@@ -217,7 +249,9 @@ class Checks:
                 & (base_cop["EVT"] != "in")
             )
             if len(base_cop[conditions_triple]):
-                patients_concernes_triple = base_cop[conditions_triple]["ID_PATIENT"].unique()
+                patients_concernes_triple = base_cop[conditions_triple][
+                    "ID_PATIENT"
+                ].unique()
                 logger.error(
                     "Les patients %s ont 3 délivrances le même jour ou plus \
                     (in et out exclus)",
@@ -242,6 +276,10 @@ def _check_or_not(base: pd.DataFrame, check=True) -> pd.DataFrame:
 
     ..note: Attention, que check soit a True ou à False, base est réordonnée
     """
-    base_copy = Checks(base).base if ("start" not in base["EVT"].unique() and check) else stable_sort(base)
+    base_copy = (
+        Checks(base).base
+        if ("start" not in base["EVT"].unique() and check)
+        else stable_sort(base)
+    )
 
     return base_copy
