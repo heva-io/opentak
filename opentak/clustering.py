@@ -14,7 +14,9 @@ if TYPE_CHECKING:
     import pandas as pd
     from scipy.spatial.distance import _Metric
 
-    LinkageMethod = Literal["single", "complete", "average", "weighted", "centroid", "median", "ward"]
+    LinkageMethod = Literal[
+        "single", "complete", "average", "weighted", "centroid", "median", "ward"
+    ]
 
 
 ID_PATIENT = str | int
@@ -243,9 +245,9 @@ class TakHca(Tak):
 
         # The cut_tree functions takes an array of cluster to return the assignement for different number of clusters,
         # i.e. different cutting points.
-        patients_groups_id = cluster.hierarchy.cut_tree(linkage, n_clusters=np.array([n_clusters]))[
-            :, 0
-        ]
+        patients_groups_id = cluster.hierarchy.cut_tree(
+            linkage, n_clusters=np.array([n_clusters])
+        )[:, 0]
 
         return patients_groups_id, list_indices_ordered
 
