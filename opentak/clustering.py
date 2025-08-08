@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Literal
 
 import numpy as np
 import numpy.typing as npt
@@ -9,9 +9,12 @@ from skimage.filters.rank import entropy
 from skimage.morphology import square
 
 if TYPE_CHECKING:
-    from collections.abc import Callable, Sequence
+    from collections.abc import Sequence
 
     import pandas as pd
+    from scipy.spatial.distance import _Metric
+
+    LinkageMethod = Literal["single", "complete", "average", "weighted", "centroid", "median", "ward"]
 
 
 ID_PATIENT = str | int
@@ -55,7 +58,7 @@ class Tak:
 
         ..note: if index_patients[0] = 2, then 1st patient from array has ID 2
         """
-        self.array = array
+        self.array: npt.NDArray = array
 
         self.dict_label_id = dict_label_id
         self.dict_label_id["other"] = 100
@@ -122,16 +125,16 @@ class TakHca(Tak):
         :param evt_log: Initial base used by the tak
         """
         super().__init__(array, index_patients, dict_label_id, timescale, evt_log)
-        self.pdist = None
+        self.pdist: npt.NDArray | None = None
         self.pdist_uncondensed: npt.NDArray | None = None
-        self.distance: str | Callable = "hamming"
-        self.method: str = "ward"
+        self.distance: _Metric = "hamming"
+        self.method: LinkageMethod = "ward"
         self.linkage: npt.NDArray | None = None
         self.linkage_total: npt.NDArray | None = None
 
     def compute_pdist(
         self,
-        distance: str | Callable = "hamming",
+        distance: _Metric = "hamming",
         subset_array: npt.NDArray | None = None,
     ) -> Tak:
         """Compute pairwise distance between patients' sequences.
@@ -171,7 +174,7 @@ class TakHca(Tak):
 
     def _get_linkage(
         self,
-        method: str,
+        method: LinkageMethod,
         pdist: npt.NDArray | None = None,
         optimal_ordering: bool = False,
     ) -> npt.NDArray:
@@ -198,7 +201,7 @@ class TakHca(Tak):
     def get_clusters(
         self,
         n_clusters: int = 1,
-        method: str = "ward",
+        method: LinkageMethod = "ward",
         patient_ids: Sequence | None = None,
         optimal_ordering: bool = False,
     ) -> tuple[np.ndarray, np.ndarray]:
@@ -238,7 +241,9 @@ class TakHca(Tak):
 
         list_indices_ordered = cluster.hierarchy.leaves_list(linkage)
 
-        patients_groups_id = cluster.hierarchy.cut_tree(linkage, n_clusters=n_clusters)[
+        # The cut_tree functions takes an array of cluster to return the assignement for different number of clusters,
+        # i.e. different cutting points.
+        patients_groups_id = cluster.hierarchy.cut_tree(linkage, n_clusters=np.array([n_clusters]))[
             :, 0
         ]
 
@@ -247,8 +252,8 @@ class TakHca(Tak):
     def fit(
         self,
         n_clusters: int = 1,
-        method: str = "ward",
-        distance: str | Callable = "hamming",
+        method: LinkageMethod = "ward",
+        distance: _Metric = "hamming",
         optimal_ordering: bool = True,
         global_optimal_ordering: bool = False,
     ) -> Tak:

@@ -40,7 +40,7 @@ def test_log_level(has_handlers, caplog):
 
     # When
     logger.debug_heva("A")
-    importlib.reload(tak.logger)
+    importlib.reload(opentak.logger)
     logger.debug_heva("B")
 
     # Then
@@ -84,7 +84,7 @@ def test_auto_config(has_handlers, logging_conf):
     has_handlers.return_value = False
 
     # When
-    importlib.reload(tak.logger)
+    importlib.reload(opentak.logger)
 
     # Then
     assert len(logging.getLogger().handlers) == 1
