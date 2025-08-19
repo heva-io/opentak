@@ -33,11 +33,11 @@ class Tak:
     ):
         """Initialize the Tak class.
 
-    :param array: 1 row = 1 patient, 1 column = 1 timestamp
-    :param index_patients: patient IDs in the same order as in ``array``
-    :param dict_label_id: dictionary mapping event names to their IDs
-    :param timescale: time window size (in days); sequences may be resampled if ``!= 1``
-    :param evt_log: initial event log used by TAK
+        :param array: 1 row = 1 patient, 1 column = 1 timestamp
+        :param index_patients: patient IDs in the same order as in ``array``
+        :param dict_label_id: dictionary mapping event names to their IDs
+        :param timescale: time window size (in days); sequences may be resampled if ``!= 1``
+        :param evt_log: initial event log used by TAK
         """
         self.array: npt.NDArray = array
 
@@ -133,11 +133,10 @@ class TakHca(Tak):
         return self
 
     def _check_pdist(self, pdist: npt.NDArray | None = None) -> npt.NDArray:
-        # ruff: noqa: D205
         """Raise if the global pdist wasn't computed earlier and isn't provided by user.
 
-    :param pdist: pairwise distance matrix between patients
-    :return: the global ``pdist`` when none is provided, or the provided ``pdist``; raises if neither is available
+        :param pdist: pairwise distance matrix between patients
+        :return: the global ``pdist`` when none is provided, or the provided ``pdist``; raises if neither is available
         """
         # TODO remove redundant calls to this method, maybe even remove it altogether?
         if pdist is None:
@@ -157,10 +156,10 @@ class TakHca(Tak):
     ) -> npt.NDArray:
         """Compute the linkage matrix from the pairwise distance vector/matrix.
 
-    :param method: linkage method ("ward", "single", "complete", "average", ...)
-    :param pdist: patients' pairwise distances 
-    :param optimal_ordering: whether to reorder tree leaves for optimal ordering
-    :return: linkage matrix
+        :param method: linkage method ("ward", "single", "complete", "average", ...)
+        :param pdist: patients' pairwise distances
+        :param optimal_ordering: whether to reorder tree leaves for optimal ordering
+        :return: linkage matrix
         """
         pdist = self._check_pdist(pdist)
 
@@ -231,16 +230,16 @@ class TakHca(Tak):
     ) -> Tak:
         """Cluster patients' sequences.
 
-    Shorthand for:
-    1. Computing pairwise distances
-    2. Building the linkage matrix
-    3. Ordering patients by dendrogram leaves
+        Shorthand for:
+        1. Computing pairwise distances
+        2. Building the linkage matrix
+        3. Ordering patients by dendrogram leaves
 
-    :param n_clusters: number of clusters to create
-    :param method: linkage method ("ward", "single", "complete", "average")
-    :param distance: pairwise distance method
-    :param optimal_ordering: whether to reorder tree leaves (optimal ordering)
-    :return: TAK fitted
+        :param n_clusters: number of clusters to create
+        :param method: linkage method ("ward", "single", "complete", "average")
+        :param distance: pairwise distance method
+        :param optimal_ordering: whether to reorder tree leaves (optimal ordering)
+        :return: TAK fitted
         """
         is_pdist_obsolete = self.pdist is None or (distance, method) != (
             self.distance,
@@ -256,8 +255,13 @@ class TakHca(Tak):
 
         cluster_labels_ordered = patient_cluster_labels[list_indices]
         cluster_order_by_leaves = list(dict.fromkeys(cluster_labels_ordered.tolist()))
-        list_ids_ordered = [list_indices[cluster_labels_ordered == c].tolist() for c in cluster_order_by_leaves]
-        list_ids_cluster_ordered = [[self.index_patients[int(i)] for i in group] for group in list_ids_ordered]
+        list_ids_ordered = [
+            list_indices[cluster_labels_ordered == c].tolist()
+            for c in cluster_order_by_leaves
+        ]
+        list_ids_cluster_ordered = [
+            [self.index_patients[int(i)] for i in group] for group in list_ids_ordered
+        ]
 
         self.list_ids_clusters = list_ids_cluster_ordered
         self.sorted_array = self.get_sorted_array()

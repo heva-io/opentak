@@ -134,7 +134,7 @@ def test_order_in_first_out_last_no_in_no_out():
     pd.testing.assert_frame_equal(log_reorder, log_expected)
 
 
-# When there is no "in" and it's not sorted 
+# When there is no "in" and it's not sorted
 def test_order_in_first_out_last_no_in_not_sorted_inside():
     # Given
     log = pd.DataFrame(

@@ -120,7 +120,9 @@ class TakBuilder:
         if kind == "hca":
             tak = TakHca(**kwargs)
         else:
-            raise ValueError("'kind' argument should be equal to 'hca' in this minimal release")
+            raise ValueError(
+                "'kind' argument should be equal to 'hca' in this minimal release"
+            )
         return tak
 
     def _create_dict_label_id(self):

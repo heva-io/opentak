@@ -1,5 +1,6 @@
 from typing import Literal
 
+
 class Config:
     """Static class containing configuration attributes that can be used accross entire projects.
 

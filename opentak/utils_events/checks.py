@@ -83,9 +83,7 @@ class Checks:
 
         patient_sans_in = set_patients - set(list_patients_in)
         if len(patient_sans_in):
-            raise ValueError(
-                f"Attention : Patients {patient_sans_in} do not have 'in'"
-            )
+            raise ValueError(f"Attention : Patients {patient_sans_in} do not have 'in'")
 
         pat_plusieurs_in = {
             pat for pat, nb_in in Counter(list_patients_in).items() if nb_in != 1
@@ -141,6 +139,7 @@ class Checks:
         self,
     ) -> None:
         """Ensure each patient's 'in' occurs before their first treatment event.
+
         If violations are found: logs the patient IDs and the first four related rows, then raises ValueError.
 
         :raises ValueError: if an 'in' appears after the first treatment
@@ -159,14 +158,13 @@ class Checks:
             for pat in pat_in_after_treatment:
                 logger.error(self.base[self.base["ID_PATIENT"].eq(pat)].iloc[:4, :])
 
-            raise ValueError(
-                "Some patients have 'in' after their first treatment"
-            )
+            raise ValueError("Some patients have 'in' after their first treatment")
 
     def check_no_out_before_treatment(
         self,
     ) -> None:
         """Ensure each patient's 'out' occurs after their last treatment event.
+
         If violations are found: logs the patient IDs and the last four related rows, then raises ValueError.
 
         :raises ValueError: if an 'out' appears before the last treatment
@@ -184,9 +182,7 @@ class Checks:
             for pat in pat_out_before_treatment:
                 logger.error(self.base[self.base["ID_PATIENT"].eq(pat)].iloc[-4:, :])
 
-            raise ValueError(
-                "Some patients have 'out' before their last treatment"
-            )
+            raise ValueError("Some patients have 'out' before their last treatment")
 
     def check_no_duplicated_rows(
         self,
