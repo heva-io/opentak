@@ -2,7 +2,7 @@ import pandas as pd
 
 
 def stable_sort(base: pd.DataFrame) -> pd.DataFrame:
-    """Ordonne la base selon ID_PATIENT puis TIMESTAMP, par un mergesort (donc algo de tri stable)."""
+    """Sort the DataFrame by ID_PATIENT then by TIMESTAMP using mergesort"""
     base = base.sort_values(["ID_PATIENT", "TIMESTAMP"], kind="mergesort").reset_index(
         drop=True
     )

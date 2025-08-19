@@ -10,21 +10,21 @@ def get_evt_log_with_frosenset_evt(
     log: pd.DataFrame,
     list_ignored_evt: list[str] | None = None,
 ) -> pd.Series:
-    """Transform log pour assembler les evts concomittants et ne garder que ceux là
+    """Transform the log to group concomitant events and keep only those.
 
-    (pour analyse).
+    This prepares the data for analysis by identifying events occurring at the
+    same time for the same patient and replacing their set of events with a
+    ``frozenset``.
 
-    :param log: df avec comme colonnes "ID_PATIENT", "EVT" et "TIMESTAMP"
-    :param list_ignored_evt: liste des evenements qui ne seront jamais considérés
-    comme concomittant (par exemple 'in' ou 'out' ou 'death')
-    :return: log avec uniquement les evenements concomittant
-    (meme patient meme timestamp), et remplaçer avec leur frozenset
+    :param log: DataFrame with columns "ID_PATIENT", "EVT" and "TIMESTAMP"
+    :param list_ignored_evt: events that should never be considered concomitant
+        (e.g., 'in', 'out', 'death')
+    :return: Series of only concomitant events (same patient and timestamp) where
+        values are the ``frozenset`` of events
     """
     if list_ignored_evt is not None:
         log = log.query("EVT not in @list_ignored_evt")
 
-    # Pour réduire temps de calcul :
-    # ne travailler que sur les lignes qui nous interessent
     log_duplicated = log[log.duplicated(subset=["ID_PATIENT", "TIMESTAMP"], keep=False)]
 
     log_duplicated_grouped = log_duplicated.groupby(["ID_PATIENT", "TIMESTAMP"])[
@@ -40,24 +40,24 @@ def regroup_evt(
     list_fzset_to_be_regrouped: list | None = None,
     sep: str = " + ",
 ) -> pd.DataFrame:
-    """Assemble les evenements concommitant en un unique evenement "A + B".
+    """Group concomitant events into a single event label like "A + B".
 
-    :param log: df avec comme colonnes "ID_PATIENT", "EVT" et "TIMESTAMP"
-    :param list_ignored_evt: liste des evenements qui ne seront jamais considérés comme concomittant (par exemple 'in'
-    ou 'out' ou 'death')
-    :param list_fzset_to_be_regrouped: liste des elements à assembler ([frozenset({"A", "B"}), frozenset({"B", "D"})]).
-    Si rien n'est donné, tous les evt concomittants sont assemblés.
-    :param sep: séparateur quand les evts sont assemblés (sep = " + " -> "A" et "B" devient l'evenement "A + B")
-    :return: log avec ces evts concomittants appartenant à list_fzset_to_be_regrouped assemblés en un unique evenement
+    :param log: DataFrame with columns "ID_PATIENT", "EVT" and "TIMESTAMP"
+    :param list_ignored_evt: events that should never be considered concomitant
+        (e.g., 'in', 'out', 'death')
+    :param list_fzset_to_be_regrouped: list of frozensets describing which
+        combinations to group (e.g., [frozenset({"A", "B"}),
+        frozenset({"B", "D"})]). If None, all concomitant events are grouped.
+    :param sep: separator used when concatenating events (e.g., sep=" + "
+        turns events "A" and "B" into the single event label "A + B")
+    :return: DataFrame where targeted concomitant events belonging to list_fzset_to_be_regrouped are grouped into a
+        single event label
     """
     log_cop = log.copy()
 
     frozen_set = pd.DataFrame(get_evt_log_with_frosenset_evt(log_cop, list_ignored_evt))
 
     if list_fzset_to_be_regrouped:
-        # Prévenir si un element de list_ignored_evt est dans
-        # list_fzset_to_be_regrouped: il ne sera pas pris en compte dans
-        # list_fzset_to_be_regrouped
         if list_ignored_evt:
             elmt_of_list_fzset_to_be_regrouped = {
                 x for fzset in list_fzset_to_be_regrouped for x in fzset
@@ -65,12 +65,10 @@ def regroup_evt(
             list_elmt_pb = elmt_of_list_fzset_to_be_regrouped & set(list_ignored_evt)
             if len(list_elmt_pb):
                 logger.warning(
-                    "Des élements de list_ignored_evt apparaissent dans list_fzset_to_be_regrouped, "
-                    "ils seront ignorés (%s)",
+                    "Some elements from list_ignored_evt appear in list_fzset_to_be_regrouped; they will be ignored (%s)",
                     list_elmt_pb,
                 )
 
-        # Ne garder que les evenements qui nous interessent
         frozen_set = frozen_set[frozen_set["EVT"].isin(list_fzset_to_be_regrouped)]
 
     if len(frozen_set):
@@ -102,7 +100,7 @@ def regroup_evt(
 
 
 def order_in_first_out_last(log: pd.DataFrame) -> pd.DataFrame:
-    """Reorder log so that according to ID_PATIENT and TIMESTAMP, with in first and out last when several EVT.
+    """Reorder log according to ID_PATIENT and TIMESTAMP, with in first and out last when several EVT.
 
     :param log: df to be reordored
     :return: log reordored
@@ -118,12 +116,15 @@ def order_in_first_out_last(log: pd.DataFrame) -> pd.DataFrame:
 
 
 def deal_with_double_delivrance(base, reset_index=True) -> pd.DataFrame:
-    """Inverse l'ordre des lignes d'un eventlog lorsqu'un patient a pour portion de séquence de traitement A-B-A
+    """Swap the order of rows in an event log for specific double-delivery cases.
 
-    avec le B-A donné au même TIMESTAMP. Idem pour A-B-A avec A-B donné au même TIMESTAMP.
+    When a patient has a treatment subsequence like A-B-A with B and A given at
+    the same ``TIMESTAMP``, the B-A pair at that timestamp is swapped to A-B.
+    Likewise for A-B-A where A-B are given at the same timestamp: the pair is
+    reordered to A-A then B at the next timestamp, to match the treatment logic.
 
-    :param base: evtlog with ID_PATIENT, TIMESTAMP and EVT columns
-    :param reset_index: reset_inde before returning the base (because rows could have be permutated)
+    :param base: event log with columns ID_PATIENT, TIMESTAMP and EVT
+    :param reset_index: reset the index before returning (rows may be permuted)
 
     !!! note
 
@@ -135,7 +136,7 @@ def deal_with_double_delivrance(base, reset_index=True) -> pd.DataFrame:
         |10|y|A|
         |...|...|...|
 
-        avec x<y, devient
+        with x < y, becomes
 
         |ID_PATIENT|TIMESTAMP|EVT|
         | :--: | :--: | :--: |
@@ -145,7 +146,7 @@ def deal_with_double_delivrance(base, reset_index=True) -> pd.DataFrame:
         |10|y|B|
         |...|...|...|
 
-        et
+        and
 
         |ID_PATIENT|TIMESTAMP|EVT|
         | :--: | :--: | :--: |
@@ -155,7 +156,7 @@ def deal_with_double_delivrance(base, reset_index=True) -> pd.DataFrame:
         |10|y|A|
         |...|...|...|
 
-        avec x<y, devient
+        with x < y, becomes
 
         |ID_PATIENT|TIMESTAMP|EVT|
         | :--: | :--: | :--: |
@@ -165,7 +166,7 @@ def deal_with_double_delivrance(base, reset_index=True) -> pd.DataFrame:
         |10|y|B|
         |...|...|...|
 
-    :return: base dont l'ordre des lignes à été changé pour coller à la logique du traitement du patient.
+    :return: event log where rows were reordered to reflect the patient's treatment logic
     """
     base_cop = base.copy()
     try:
@@ -175,12 +176,11 @@ def deal_with_double_delivrance(base, reset_index=True) -> pd.DataFrame:
         )
     except AssertionError:
         logger.warning(
-            "The base was not sorted according to 'ID_PATIENT' and 'TIMESTAMP', it has been sorted \
-                       To silent the warning, use base.sort_values(['ID_PATIENT', 'TIMESTAMP'], kind='mergesort')\
+            "The base was not sorted by 'ID_PATIENT' and 'TIMESTAMP', it has been sorted \
+                       To silence the warning, use base.sort_values(['ID_PATIENT', 'TIMESTAMP'], kind='mergesort')\
                         before this function"
         )
 
-    # Gérer les cas des délivrances doubles où il parait plus intuitif d'en mettre une avant la deuxième
     conditions = (
         base_cop["ID_PATIENT"].eq(base_cop["ID_PATIENT"].shift(-1))
         & base_cop["TIMESTAMP"].eq(base_cop["TIMESTAMP"].shift(-1))
@@ -195,7 +195,6 @@ def deal_with_double_delivrance(base, reset_index=True) -> pd.DataFrame:
         )
     )
 
-    # Switcher !
     conditions = conditions.reset_index(name="ttmt_to_move_down")
     conditions["new_index"] = conditions["index"]
     conditions["ttmt_to_move_up"] = (
@@ -216,27 +215,25 @@ def deal_with_double_delivrance(base, reset_index=True) -> pd.DataFrame:
 
 
 def add_evt_duration(base: pd.DataFrame, check=True) -> pd.DataFrame:
-    """Rajoute une colonne avec le délai entre un évènement et le suivant (ici la durée de traitement).
+    """Add a column with the delay until the next event (treatment duration).
 
-    :param base: (df) une ligne = un évènement pour un patient, colonnes : 'ID_PATIENT', 'EVT' et 'TIMESTAMP'
-    :param check: mettre à False si on veut ne pas passer par l'étape de check
-    (par exemple si nous n'avons ni in ni out).
-    :return: (df) copie de base avec la colonne evt_duration en plus
+    :param base: DataFrame — one row per event for a patient; columns:
+        'ID_PATIENT', 'EVT', 'TIMESTAMP'
+    :param check: set to False to skip validations (e.g., if there is neither
+        'in' nor 'out')
+    :return: copy of the input with an additional ``evt_duration`` column
 
-    ..note: Attention, que check soit a True ou à False, base est réordonnée car c'est indispensable
+    .. note:: Regardless of ``check`` being True or False, the dataset is
+        reordered because it is required for correct computation.
     """
     base_copy = _check_or_not(base, check)
 
-    # calcul de la différence TIMESTAMP d'un evenement et NJOURS de celui en dessous de lui dans la dataframe
     base_copy["evt_duration"] = base_copy["TIMESTAMP"].shift(-1).diff().copy()
 
-    # gerer le premier element du dataframe
     base_copy["evt_duration"].iloc[0] = (
         base_copy["TIMESTAMP"].iloc[1] - base_copy["TIMESTAMP"].iloc[0]
     )
 
-    # gerer les doubles délivrances le même jour :
-    # diviser la durée de traitement par le nombre de délivrance (2)
     conditions = (
         (base_copy["EVT"].shift(+1) != "in")
         & (base_copy["EVT"].shift(+1) != "start")
@@ -280,10 +277,9 @@ def add_evt_duration(base: pd.DataFrame, check=True) -> pd.DataFrame:
     except ValueError as exc:
         pat = base_copy.loc[conditions2, "ID_PATIENT"].unique()
         raise ValueError(
-            f"Problème dans les durées de traitements, regarder les patients {pat}"
+            f"Treatment durations are inconsistent for patients {pat}"
         ) from exc
 
-    # Mettre des NaN à la dernière ligne de chaque patient
     base_copy.loc[
         base_copy["ID_PATIENT"].ne(base_copy["ID_PATIENT"].shift(-1)),
         "evt_duration",
@@ -293,14 +289,15 @@ def add_evt_duration(base: pd.DataFrame, check=True) -> pd.DataFrame:
 
 
 def _check_or_not(base: pd.DataFrame, check=True) -> pd.DataFrame:
-    """Check base (presence de in, out, death, etc) et l'ordonne si check=True, sinon ne fait que l'ordonner.
+    """Validate the dataset and check it if ``check=True``; otherwise only reorder.
 
-    :param base: (df) une ligne = un évènement pour un patient, colonnes : 'ID_PATIENT', 'EVT' et 'TIMESTAMP'
-    :param check: mettre à False si on veut ne pas passer par l'étape de check
-    (par exemple si nous n'avons ni in ni out).
-    :return: (df) copie de base réordonner (ID_PATIENT, TIMESTAMP)
+    :param base: DataFrame — one row per event for a patient; columns:
+        'ID_PATIENT', 'EVT', 'TIMESTAMP'
+    :param check: set to False to skip validations (e.g., when there is neither
+        'in' nor 'out')
+    :return: reordered copy of ``base`` (by ID_PATIENT, TIMESTAMP)
 
-    ..note: Attention, que check soit a True ou à False, base est réordonnée
+    .. note:: Regardless of ``check`` being True or False, the dataset is reordered.
     """
     base_copy = (
         Checks(base).base
