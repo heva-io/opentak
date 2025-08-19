@@ -5,8 +5,6 @@ from typing import TYPE_CHECKING, Any, Literal
 import numpy as np
 import numpy.typing as npt
 from scipy import cluster, spatial
-from skimage.filters.rank import entropy
-from skimage.morphology import square
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -20,23 +18,6 @@ if TYPE_CHECKING:
 
 
 ID_PATIENT = str | int
-
-
-def mean_spatial_entropy(arr: np.ndarray) -> float:
-    """Compute the average entropy of array sub-blocks.
-
-    Given a matrix of patients' time sequences as array, this function compute
-    the probabilist entropy for each pixel on a 3*3 square and return the average.
-
-    The minimum possible value for a single square is 0.0 (the matrix has a single
-    value), and the maximum possible is ~2.20 if there are 9 or more possible values
-    in the full matrix (a 3*3 square with 9 different values).
-
-    :param arr: stacked patients' sequences
-    :return: average entropy
-    """
-    mse: float = entropy(arr, square(3)).mean()
-    return mse
 
 
 class Tak:
@@ -64,8 +45,6 @@ class Tak:
 
         self.dict_label_id = dict_label_id
         self.dict_label_id["other"] = 100
-        self.homogeneity_base = mean_spatial_entropy(array)
-        self.homogeneity_fitted: float
         self.index_patients = index_patients
         self.is_fitted = False
         self.list_ids_clusters: list[Any] = []
