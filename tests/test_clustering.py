@@ -11,9 +11,9 @@ from opentak import TakBuilder
 col = ["ID_PATIENT", "TIMESTAMP", "EVT"]
 RANDOM_STATE = 42
 
-# base test contenant 2 types de patient :
-# type 1 : patients 0 et 4
-# type 2 : patients 1, 2, 3 et 5
+# base test containing 2 clusters:
+# cluster 1 : patients 0 and 4
+# cluster 2 : patients 1, 2, 3 and 5
 base = pd.DataFrame(
     [
         [0, 0, "in"],

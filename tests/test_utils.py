@@ -6,7 +6,6 @@ import opentak.utils_events.utils as utils
 COLS = ["ID_PATIENT", "TIMESTAMP", "EVT"]
 
 
-# Regroup evt test classique
 def test_regroup_evt():
     # Given
     log = pd.DataFrame(
@@ -33,7 +32,7 @@ def test_regroup_evt():
     pd.testing.assert_frame_equal(log_result, log_expected)
 
 
-# Test 3 evenements au temps 0 dont 'in' qui est dans list_ignored_evt
+# Test 3 events at time 0 with 'in' included in list_ignored_evt
 def test_regroup_evt_3_evts_in_included():
     # Given
     base_in_A_B_at_0 = pd.DataFrame(
@@ -52,7 +51,7 @@ def test_regroup_evt_3_evts_in_included():
     pd.testing.assert_frame_equal(base_res, base_in_A_B_at_0_theorique)
 
 
-# Test 3 evenements au temps 0, et ['in'] dans list_ignored_evt mais pas dans la base
+# Test: 3 events at time 0, and ['in'] in list_ignored_evt but not in the eventlog
 def test_regroup_evt_in_not_in_base_but_in_list_ignored_evt():
     # Given
     base_A_B_C_at_0 = pd.DataFrame(
@@ -71,7 +70,7 @@ def test_regroup_evt_in_not_in_base_but_in_list_ignored_evt():
     pd.testing.assert_frame_equal(base_res, base_A_B_C_at_0_theorique)
 
 
-# Situation classique : in en meme temps qu'un med et out en meme temps que 2 meds
+# Test: "in" occurring at the same time as one med and "out" at the same time as two meds
 def test_order_in_first_out_last():
     # Given
     log = pd.DataFrame(
@@ -87,7 +86,7 @@ def test_order_in_first_out_last():
     pd.testing.assert_frame_equal(log_reorder, log_expected)
 
 
-# Quand in est après la premier evenement du patient, on le laisse comme ça (ce sera les check qui diront qu'il y a un probleme)
+# If "in" occurs after the patient's first event, leave it as-is (the checks will report the problem)
 def test_order_in_first_out_last_2():
     # Given
     log = pd.DataFrame(
@@ -103,7 +102,7 @@ def test_order_in_first_out_last_2():
     pd.testing.assert_frame_equal(log_reorder, log_expected)
 
 
-# Quand il n'y a pas de in
+# When there is no "in"
 def test_order_in_first_out_last_no_in():
     # Given
     log = pd.DataFrame(
@@ -119,7 +118,7 @@ def test_order_in_first_out_last_no_in():
     pd.testing.assert_frame_equal(log_reorder, log_expected)
 
 
-# Quand il n'y a pas ni in, ni out
+# When there is neither "in" nor "out"
 def test_order_in_first_out_last_no_in_no_out():
     # Given
     log = pd.DataFrame(
@@ -135,7 +134,7 @@ def test_order_in_first_out_last_no_in_no_out():
     pd.testing.assert_frame_equal(log_reorder, log_expected)
 
 
-# Quand il n'y a pas de in et que c'est pas trié à l'intérieur
+# When there is no "in" and it's not sorted 
 def test_order_in_first_out_last_no_in_not_sorted_inside():
     # Given
     log = pd.DataFrame(
