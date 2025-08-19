@@ -23,11 +23,11 @@ base_duplicated_rows = pd.DataFrame(
 @pytest.mark.parametrize(
     "base, match_expected",
     [
-        (base_without_in, "n'ont pas de 'in'"),
-        (base_without_out, "n'ont pas de 'out'"),
-        (base_with_ttmt_before_in, "'in' est après le premier traitement"),
-        (base_with_ttmt_after_out, "'out' est avant le dernier traitement"),
-        (base_duplicated_rows, "lignes en doubles"),
+        (base_without_in, "do not have 'in'"),
+        (base_without_out, "do not have 'out'"),
+        (base_with_ttmt_before_in, "'in' after their first treatment"),
+        (base_with_ttmt_after_out, "'out' before their last treatment"),
+        (base_duplicated_rows, "duplicate rows"),
     ],
 )
 def test_ValueError(base, match_expected):
