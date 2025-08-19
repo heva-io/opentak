@@ -196,7 +196,6 @@ class TakBuilder:
             evt = list(df_group["EVT"].replace(self.dict_label_id).astype("int"))
             durations = list(df_group["evt_duration"])
 
-            # TODO check duration type prior to array creation
             if not all(
                 isinstance(duration, (int, float)) for duration in durations
             ) or any(duration < 0 for duration in durations):
