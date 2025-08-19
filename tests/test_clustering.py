@@ -54,14 +54,14 @@ def test_uncomputed_pdist_ok():
 
 
 @pytest.mark.parametrize(
-    ("n_clusters, global_optimal_ordering"),
+    ("n_clusters, optimal_ordering"),
     [(1, True), (1, False), (2, True), (2, False)],
 )
-def test_tak(n_clusters, global_optimal_ordering):
+def test_tak(n_clusters, optimal_ordering):
     # Given
     tak = TakBuilder(base).build()
     # When
-    tak.fit(n_clusters=n_clusters, global_optimal_ordering=global_optimal_ordering)
+    tak.fit(n_clusters=n_clusters, optimal_ordering=optimal_ordering)
     # Then
     assert len(tak.sorted_array) == n_clusters
 

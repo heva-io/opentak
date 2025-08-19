@@ -178,7 +178,7 @@ class TakHca(Tak):
         self,
         method: LinkageMethod,
         pdist: npt.NDArray | None = None,
-        optimal_ordering: bool = False,
+        optimal_ordering: bool = True,
     ) -> npt.NDArray:
         """Compute linkage matrix from pairwise distances.
 
@@ -205,7 +205,7 @@ class TakHca(Tak):
         n_clusters: int = 1,
         method: LinkageMethod = "ward",
         patient_ids: Sequence | None = None,
-        optimal_ordering: bool = False,
+        optimal_ordering: bool = True,
     ) -> tuple[np.ndarray, np.ndarray]:
         """Clusters patients' sequences.
 
@@ -257,7 +257,6 @@ class TakHca(Tak):
         method: LinkageMethod = "ward",
         distance: _Metric = "hamming",
         optimal_ordering: bool = True,
-        global_optimal_ordering: bool = False,
     ) -> Tak:
         """Cluster patients' sequences.
 
@@ -279,8 +278,7 @@ class TakHca(Tak):
         :param n_clusters: number of clusters to create
         :param method: linkage method ("ward", "single", "complete", "average")
         :param distance: pairwise distance method
-        :param optimal_ordering: should reorder tree leaves?
-        :param global_optimal_ordering: whether to perform optimal ordering on all patients globally
+        :param optimal_ordering: Optimal ordering of the dendogram 
         :return: self for method chaining
         """
         is_pdist_obsolete = self.pdist is None or (distance, method) != (
@@ -291,56 +289,16 @@ class TakHca(Tak):
         if is_pdist_obsolete:
             self.compute_pdist(distance)
 
-        # perform HCA clustering
-        labels, list_indices = self.get_clusters(
-            n_clusters=n_clusters,
-            method=method,
-            optimal_ordering=global_optimal_ordering,
+        patient_cluster_labels, list_indices = self.get_clusters(
+            n_clusters=n_clusters, method=method, optimal_ordering=optimal_ordering
         )
 
-        list_ids_clusters = []
+        cluster_labels_ordered = patient_cluster_labels[list_indices]
+        cluster_order_by_leaves = list(dict.fromkeys(cluster_labels_ordered.tolist()))
+        list_ids_ordered = [list_indices[cluster_labels_ordered == c].tolist() for c in cluster_order_by_leaves]
+        list_ids_cluster_ordered = [[self.index_patients[int(i)] for i in group] for group in list_ids_ordered]
 
-        for label in sorted(np.unique(labels)):
-            # Get patients index for cluster
-            list_idx_cluster = np.arange(len(labels))[labels == label]
-
-            # Order of patients in cluster, from 0 to len(cluster)
-            if not global_optimal_ordering:
-                # if optimal ordering is not perform on all patients, perform it individually on each cluster
-                _, list_order_pat_cluster = self.get_clusters(
-                    n_clusters=1,
-                    method=method,
-                    patient_ids=list_idx_cluster,
-                    optimal_ordering=optimal_ordering,
-                )
-            else:
-                # retrieve order from global order
-                cluster_positions = {
-                    idx: pos for pos, idx in enumerate(list_idx_cluster)
-                }
-                # position of base labels in sorted labels
-                list_order_pat_cluster = np.array(
-                    [
-                        cluster_positions[idx]
-                        for idx in list_indices
-                        if idx in cluster_positions
-                    ]
-                )
-
-            # Get corresponding patient ids
-            list_id_index_cluster = self.index_patients[labels == label]
-            # sort these patients according to the optimal ordering
-            list_id_index_cluster_ordered = list_id_index_cluster[
-                list_order_pat_cluster
-            ]
-
-            # Save results for this cluster in a list,
-            # to go on with the next cluster
-            list_ids_clusters.append(list_id_index_cluster_ordered)
-
-        # ruff noqa: ERA001 # self.homogeneity_fitted = _homogeneity_fitted...
-
-        self.list_ids_clusters = list_ids_clusters
+        self.list_ids_clusters = list_ids_cluster_ordered
         self.sorted_array = self.get_sorted_array()
         self.is_fitted = True
         return self
