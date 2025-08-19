@@ -50,8 +50,11 @@ class Tak:
         self.timescale = timescale
         self.base = evt_log
 
-    def fit(self) -> Tak:
-        """Fits the Tak object."""
+    def fit(
+        self,
+        n_clusters: int = 1,
+    ) -> Tak:
+        """Fit the TAK model (to be implemented by subclasses)."""
         raise NotImplementedError
 
     def get_list_indices_cluster(self, list_ids_cluster: list | None = None):
