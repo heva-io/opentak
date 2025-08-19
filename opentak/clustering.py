@@ -31,15 +31,13 @@ class Tak:
         timescale: int,
         evt_log: pd.DataFrame,
     ):
-        """Initialise of the Tak class.
+        """Initialize the Tak class.
 
-        :param array: 1 ligne = 1 patient, 1 column = 1 timestamp
-        :param index_patients: patients IDs in the same order as the array matrix
-        :param dict_label_id: dictionnaire mapping the name of teh event to its id.
-        :param timescale: time windows size (in days) (resampling if !=1)
-        :param evt_log: Initial base used by the tak.
-
-        ..note: if index_patients[0] = 2, then 1st patient from array has ID 2
+    :param array: 1 row = 1 patient, 1 column = 1 timestamp
+    :param index_patients: patient IDs in the same order as in ``array``
+    :param dict_label_id: dictionary mapping event names to their IDs
+    :param timescale: time window size (in days); sequences may be resampled if ``!= 1``
+    :param evt_log: initial event log used by TAK
         """
         self.array: npt.NDArray = array
 
@@ -136,12 +134,10 @@ class TakHca(Tak):
 
     def _check_pdist(self, pdist: npt.NDArray | None = None) -> npt.NDArray:
         # ruff: noqa: D205
-        """Renvoie une erreur si la matrice pdist totale n'a pas été calculée,
-        précédemment et n'est pas donné par l'utilisateur.
+        """Raise if the global pdist wasn't computed earlier and isn't provided by user.
 
-        :param pdist: matrice de pairwise distance entre les patients
-        :return: pdist total si aucune n'était donnée en entrée, erreur si aucune
-        n'était donnée et que pdist n'était pas calculée, pdist en entrée sinon.
+    :param pdist: pairwise distance matrix between patients
+    :return: the global ``pdist`` when none is provided, or the provided ``pdist``; raises if neither is available
         """
         # TODO remove redundant calls to this method, maybe even remove it altogether?
         if pdist is None:
@@ -159,14 +155,12 @@ class TakHca(Tak):
         pdist: npt.NDArray | None = None,
         optimal_ordering: bool = True,
     ) -> npt.NDArray:
-        """Compute linkage matrix from pairwise distances.
+        """Compute the linkage matrix from the pairwise distance vector/matrix.
 
-        Calcule la matrice de linkage à partir de la matrice de distance pdist.
-
-        :param method: linkage method ("ward", "single", "complete", "average")
-        :param pdist: patients pairwise distances
-        :param optimal_ordering: should reorder tree leaves?
-        :return: linkage matrix
+    :param method: linkage method ("ward", "single", "complete", "average", ...)
+    :param pdist: patients' pairwise distances 
+    :param optimal_ordering: whether to reorder tree leaves for optimal ordering
+    :return: linkage matrix
         """
         pdist = self._check_pdist(pdist)
 
@@ -222,8 +216,6 @@ class TakHca(Tak):
 
         list_indices_ordered = cluster.hierarchy.leaves_list(linkage)
 
-        # The cut_tree functions takes an array of cluster to return the assignement for different number of clusters,
-        # i.e. different cutting points.
         patients_groups_id = cluster.hierarchy.cut_tree(
             linkage, n_clusters=np.array([n_clusters])
         )[:, 0]
@@ -239,26 +231,16 @@ class TakHca(Tak):
     ) -> Tak:
         """Cluster patients' sequences.
 
-        ```
-        Shorthand method for:
-        1. Computing pairwise distances
-        2. Building linkage matrix
-        3. Ordering patients' sequences
-        ```
+    Shorthand for:
+    1. Computing pairwise distances
+    2. Building the linkage matrix
+    3. Ordering patients by dendrogram leaves
 
-        !!! note "Concept"
-            Regarder les feuilles du dendrogram (les patients) dans l'ordre et avoir un array où les patients
-            similaires sont cote à cote.
-
-        !!! note
-            list_leaves contient autant d'éléments que de clusters demandés, chaque élément étant la liste des ID
-            des patients dans le cluster
-
-        :param n_clusters: number of clusters to create
-        :param method: linkage method ("ward", "single", "complete", "average")
-        :param distance: pairwise distance method
-        :param optimal_ordering: Optimal ordering of the dendogram 
-        :return: self for method chaining
+    :param n_clusters: number of clusters to create
+    :param method: linkage method ("ward", "single", "complete", "average")
+    :param distance: pairwise distance method
+    :param optimal_ordering: whether to reorder tree leaves (optimal ordering)
+    :return: TAK fitted
         """
         is_pdist_obsolete = self.pdist is None or (distance, method) != (
             self.distance,

@@ -100,27 +100,15 @@ class TakBuilder:
 
         ``"hca"``
             Classic Tak algorithm. Stands for Hierarchical Clustering Analysis.
-        ``"meta"``
-            Tweaked Tak algorithm for large cohorts.
-            This uses intermediary medoids patients for faster computation and represent all patients.
-        ``"random"``
-            Shuffle patients' sequences.
-        ``"custom_sort"``
-            Order patients' sequences based on a sorted_patients list.
 
-        !!! note "Fixer la seed"
-            Pour la reproductibilité des résultats, systématiquement fixer la seed avec le paramètre `random_state`
-
-        :param kind: {"hca", "meta", "random",  "custom_sort"} kind of Tak object
+        :param kind: "hca" kind for Tak minimal release; other types will be introduced in next releases
         should be built
         :return: Tak object
         """
-        # Array
         if self._must_create_array:
             self._create_array_from_evt_log()
             self._must_create_array = False
 
-        # TAK
         kwargs = {
             "array": self.array,
             "index_patients": self.index_patients,
@@ -132,7 +120,7 @@ class TakBuilder:
         if kind == "hca":
             tak = TakHca(**kwargs)
         else:
-            raise ValueError("'kind' argument should be one of the following 'hca'")
+            raise ValueError("'kind' argument should be equal to 'hca' in this minimal release")
         return tak
 
     def _create_dict_label_id(self):
