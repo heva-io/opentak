@@ -9,8 +9,8 @@ import pandas as pd
 
 from opentak.clustering import Tak, TakHca
 from opentak.utils_events import checks
-from opentak.utils_events.utils import add_evt_duration
 from opentak.utils_events.preprocessing import stable_sort
+from opentak.utils_events.utils import add_evt_duration
 
 pd.set_option("future.no_silent_downcasting", True)
 
@@ -176,7 +176,7 @@ class TakBuilder:
         represents a patient and each column represents a timestamp. The array contains
         integer IDs corresponding to the events at each timestamp.
 
-        :raises ValueError: if patient durations are invalid 
+        :raises ValueError: if patient durations are invalid
         """
         list_patients: list[np.ndarray] = []
         for id_group, df_group in self.base.loc[self.base["EVT"] != "end"].groupby(
