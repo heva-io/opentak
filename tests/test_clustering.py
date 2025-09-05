@@ -126,7 +126,6 @@ def test_golden_test():
     """
     n_clusters = 4
     base = pd.read_csv("./data/golden_test_event_log_2000pat.csv")
-    base["EVT"] = base["EVT"].replace({"Inclusion": "in"})
     base_out = pd.DataFrame(
         {"ID_PATIENT": base["ID_PATIENT"].unique(), "TIMESTAMP": 10, "EVT": "out"}
     )
