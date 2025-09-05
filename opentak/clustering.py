@@ -263,7 +263,7 @@ class TakHca(Tak):
             for c in cluster_order_by_leaves
         ]
         list_ids_cluster_ordered = [
-            [self.index_patients[int(i)] for i in group] for group in list_ids_ordered
+            [self.index_patients[i] for i in group] for group in list_ids_ordered
         ]
 
         self.list_ids_clusters = list_ids_cluster_ordered
