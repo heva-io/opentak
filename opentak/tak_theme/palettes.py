@@ -37,7 +37,9 @@ Palette: TypeAlias = Spreadable  # Palette: TypeAlias = list[tuple[float, str]]
 @dataclass
 class ReversableMixin:
     def __getattr__(self, name: str) -> Any:
-        if name.endswith("_r") and name.removesuffix("_r") in [f.name for f in fields(self)]:
+        if name.endswith("_r") and name.removesuffix("_r") in [
+            f.name for f in fields(self)
+        ]:
             return super().__getattribute__(name.removesuffix("_r"))[::-1]
         return super().__getattribute__(name)
 
@@ -67,7 +69,9 @@ class _Qualitative(ReversableMixin):
 
 @dataclass
 class _Sequential(ReversableMixin):
-    blues: Palette = field(default_factory=lambda: Spreadable([(0.0, GHOST_WHITE), (1.0, BLUE)]))
+    blues: Palette = field(
+        default_factory=lambda: Spreadable([(0.0, GHOST_WHITE), (1.0, BLUE)])
+    )
     light_blues: Palette = field(
         default_factory=lambda: Spreadable([(0.0, GHOST_WHITE), (1.0, BLUE_CRAYOLA)])
     )
@@ -81,19 +85,27 @@ class _Sequential(ReversableMixin):
         default_factory=lambda: Spreadable([(0.0, GHOST_WHITE), (1.0, RED_CRAYOLA)])
     )
     blue_turquoise: Palette = field(
-        default_factory=lambda: Spreadable([(0.0, BLUE), (0.5, BLUE_CRAYOLA), (1.0, TURQUOISE)])
+        default_factory=lambda: Spreadable(
+            [(0.0, BLUE), (0.5, BLUE_CRAYOLA), (1.0, TURQUOISE)]
+        )
     )
     blue_saffron: Palette = field(
         default_factory=lambda: Spreadable([(0.0, BLUE), (0.5, FUSHIA), (1.0, SAFFRON)])
     )
     blue_sunglow: Palette = field(
-        default_factory=lambda: Spreadable([(0.0, BLUE), (0.5, TURQUOISE), (1.0, SUNGLOW)])
+        default_factory=lambda: Spreadable(
+            [(0.0, BLUE), (0.5, TURQUOISE), (1.0, SUNGLOW)]
+        )
     )
     margarita_red: Palette = field(
-        default_factory=lambda: Spreadable([(0.0, MARGARITA), (0.5, SUNGLOW), (1.0, RED_CRAYOLA)])
+        default_factory=lambda: Spreadable(
+            [(0.0, MARGARITA), (0.5, SUNGLOW), (1.0, RED_CRAYOLA)]
+        )
     )
     yellow_fushia: Palette = field(
-        default_factory=lambda: Spreadable([(0.0, SUNGLOW), (0.5, RED_CRAYOLA), (1.0, FUSHIA)])
+        default_factory=lambda: Spreadable(
+            [(0.0, SUNGLOW), (0.5, RED_CRAYOLA), (1.0, FUSHIA)]
+        )
     )
 
 
@@ -109,7 +121,9 @@ class _Diverging(ReversableMixin):
         )
     )
     turquoise_blue: Palette = field(
-        default_factory=lambda: Spreadable([(0.0, TURQUOISE), (0.5, GHOST_WHITE), (1.0, BLUE)])
+        default_factory=lambda: Spreadable(
+            [(0.0, TURQUOISE), (0.5, GHOST_WHITE), (1.0, BLUE)]
+        )
     )
     turquoise_lightblue: Palette = field(
         default_factory=lambda: Spreadable(
@@ -130,7 +144,9 @@ class _Diverging(ReversableMixin):
         )
     )
     red_blue: Palette = field(
-        default_factory=lambda: Spreadable([(0.0, RED_CRAYOLA), (0.5, GHOST_WHITE), (1.0, BLUE)])
+        default_factory=lambda: Spreadable(
+            [(0.0, RED_CRAYOLA), (0.5, GHOST_WHITE), (1.0, BLUE)]
+        )
     )
     red_lightblue: Palette = field(
         default_factory=lambda: Spreadable(

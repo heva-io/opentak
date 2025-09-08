@@ -12,9 +12,9 @@ from plotly.graph_objs import graph_objs
 
 def create_dendrogram(
     # ruff: noqa: N803
-    X: np.ndarray,
+    x: np.ndarray,
     add_sep: bool,
-    nb_subclusters: int,
+    nb_clusters: int,
     orientation: str = "bottom",
     labels: list[str] | None = None,
     colorscale: list | None = None,
@@ -24,10 +24,10 @@ def create_dendrogram(
     """Return a dendrogram Plotly figure object. This is a thin
     wrapper around scipy.cluster.hierarchy.dendrogram.
 
-    :param X: Result of scipy.cluster.hierarchy.linkage() function
+    :param x: Result of scipy.cluster.hierarchy.linkage() function
     :param add_sep: Whether a separation is shown on the TAK or no. This parameter allows the dendogram to be cut and
     only displays clusters on the dendogram
-    :param nb_subclusters: Number of clusters on the TAK
+    :param nb_clusters: Number of clusters on the TAK
     :param orientation: 'top', 'right', 'bottom', or 'left'
     :param labels: List of axis category labels(observation labels)
     :param colorscale: Optional colorscale for the dendrogram tree.
@@ -43,9 +43,9 @@ def create_dendrogram(
     :return: Dendogram representing the hiearchical clustering
     """
     dendrogram = _Dendrogram(
-        X,
+        x,
         add_sep,
-        nb_subclusters,
+        nb_clusters,
         orientation,
         labels,
         colorscale,
@@ -68,8 +68,8 @@ class _Dendrogram:
         self,
         # ruff: noqa: N803
         X,
-        add_sep,
-        nb_subclusters,
+        add_sep: bool,
+        nb_clusters: int,
         orientation="bottom",
         labels=None,
         colorscale=None,
@@ -79,16 +79,30 @@ class _Dendrogram:
         yaxis="yaxis",
         hovertext=None,
     ):
+        """Initialize the _Dendrogram class.
+
+        :param x: Result of scipy.cluster.hierarchy.linkage() function
+        :param add_sep: Whether a separation is shown on the TAK or not
+        :param nb_clusters: Number of clusters on the TAK
+        :param orientation: 'top', 'right', 'bottom', or 'left'
+        :param labels: List of axis category labels (observation labels)
+        :param colorscale: Optional colorscale for the dendrogram tree
+        :param width: Width of the figure
+        :param height: Height of the figure
+        :param xaxis: Name of the x-axis
+        :param yaxis: Name of the y-axis
+        :param hovertext: List of hovertext for constituent traces of dendrogram clusters
+        """
         self.orientation = orientation
         self.add_sep = add_sep
-        self.nb_subclusters = nb_subclusters
+        self.nb_clusters = nb_clusters
         self.labels = labels
         self.xaxis = xaxis
         self.yaxis = yaxis
         self.data = []
         self.leaves = []
         self.sign = {self.xaxis: 1, self.yaxis: 1}
-        self.layout = {self.xaxis: {}, self.yaxis: {}}
+        self.layout: dict[str, dict] = {self.xaxis: {}, self.yaxis: {}}
 
         if self.orientation in ["left", "bottom"]:
             self.sign[self.xaxis] = 1
@@ -107,7 +121,7 @@ class _Dendrogram:
             ordered_labels,
             leaves,
             threshold_vertical,
-        ) = self.get_dendrogram_traces(X, colorscale, hovertext, self.nb_subclusters)
+        ) = self.get_dendrogram_traces(X, colorscale, hovertext, self.nb_clusters)
 
         self.threshold_vertical = threshold_vertical
 
@@ -119,7 +133,7 @@ class _Dendrogram:
         # storing yaxis_range to crop borders of dendrogram
         self.yaxis_range = [0, max(xvals_flat)]
 
-        self.zero_vals = []
+        self.zero_vals: list[float] = []
 
         for i in range(len(yvals_flat)):
             if yvals_flat[i] == 0 and xvals_flat[i] not in self.zero_vals:
@@ -141,10 +155,10 @@ class _Dendrogram:
         self.data = dd_traces
 
     def get_color_dict(self, colorscale):
-        # ruff: noqa: D205
         """Return colorscale used for dendrogram tree clusters.
-        :param (list) colorscale: Colors to use for the plot in rgb format.
-        :rtype (dict): A dict of default colors mapped to the user colorscale.
+
+        :param colorscale: Colors to use for the plot in rgb format.
+        :return: A dict of default colors mapped to the user colorscale.
         """
         # These are the color codes returned for dendrograms
         # We're replacing them with nicer colors
@@ -166,12 +180,12 @@ class _Dendrogram:
 
         if colorscale is None:
             rgb_colorscale = [
-                "rgb(0,0,255)",  # Main blue
-                "rgb(65,124,255)",  # Secondary blue
-                "rgb(45,223,213)",  # Turquoise
-                "rgb(255,86,87)",  # Coral
-                "rgb(255,203,5)",  # Yellow
-                "rgb(112,111,111)",  # Grey
+                "rgb(0,0,255)",  # Bleu Docaposte
+                "rgb(65,124,255)",  # Bleu secondaire
+                "rgb(45,223,213)",  # Bleu turquoise
+                "rgb(255,86,87)",  # Corail
+                "rgb(255,203,5)",  # Jaune La Poste
+                "rgb(112,111,111)",  # Gris La Poste
                 "rgb(0,0,0)",  # White
             ]
         else:
@@ -263,14 +277,14 @@ class _Dendrogram:
     def get_dendrogram_traces(
         # ruff: noqa: N803
         self,
-        X: np.array,
+        x: np.ndarray,
         colorscale: list,
         hovertext: list,
         color_threshold: int,
     ):
         """Calculate all the elements needed for plotting a dendrogram.
 
-        :param X: Linkage matrix
+        :param x: Linkage matrix
         :param colorscale: Color scale for dendrogram tree clusters
         :param hovertext: List of hovertext for constituent traces of dendrogram
         :param color_threshold: Number of clusters to colour
@@ -289,8 +303,8 @@ class _Dendrogram:
         offset_vline = 0.1
 
         dendrogram_dict = sch.dendrogram(
-            X,
-            color_threshold=X[-(color_threshold - 1), 2],
+            x,
+            color_threshold=x[-(color_threshold - 1), 2],
             orientation=self.orientation,
             labels=self.labels,
             no_plot=True,
@@ -335,12 +349,12 @@ class _Dendrogram:
             }
 
             try:
-                x_index = int(self.xaxis[-1])
+                x_index = str(int(self.xaxis[-1]))
             except ValueError:
                 x_index = ""
 
             try:
-                y_index = int(self.yaxis[-1])
+                y_index = str(int(self.yaxis[-1]))
             except ValueError:
                 y_index = ""
 

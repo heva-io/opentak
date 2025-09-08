@@ -113,6 +113,18 @@ wheels = [
 ]
 
 [[package]]
+name = "coloraide"
+version = "5.1"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "typing-extensions", marker = "python_full_version < '3.11'" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/25/f8/431e591ce42f3f1baf648c5422aae823d7349060755bfa2a774422a9be01/coloraide-5.1.tar.gz", hash = "sha256:0df066a636dbd8481981fac490240d3ed906b40343c7c01712b3df542f2b2750", size = 19161089, upload-time = "2025-08-31T23:16:47.64Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/16/fb/5f13cf2af66c5c07fc7793661eade4e3c9cb145ac5be9d077f4f29c0af48/coloraide-5.1-py3-none-any.whl", hash = "sha256:455f410d20a0bdd6d9db74b28ec1c29bb27dc75e340ebf492e550c127fd0c333", size = 268831, upload-time = "2025-08-31T23:16:45.522Z" },
+]
+
+[[package]]
 name = "colorama"
 version = "0.4.6"
 source = { registry = "https://pypi.org/simple" }
@@ -1120,6 +1132,7 @@ name = "opentak"
 version = "0.0.1"
 source = { virtual = "." }
 dependencies = [
+    { name = "coloraide" },
     { name = "matplotlib" },
     { name = "more-itertools" },
     { name = "numpy", version = "2.2.6", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
@@ -1153,6 +1166,7 @@ doc = [
 
 [package.metadata]
 requires-dist = [
+    { name = "coloraide", specifier = ">=5.1" },
     { name = "matplotlib", specifier = ">=3.10.5" },
     { name = "more-itertools", specifier = ">=8.7.0,<9.0.0" },
     { name = "numpy", specifier = ">=2.2.2,<3" },

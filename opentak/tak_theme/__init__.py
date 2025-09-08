@@ -17,5 +17,5 @@ __all__ = (
     "set_style",
 )
 
-meta = metadata.metadata("tak_theme")
-__version__ = meta["Version"]
+# meta = metadata.metadata("tak_theme")
+# __version__ = meta["Version"]

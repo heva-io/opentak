@@ -1,8 +1,7 @@
-import copy
-
 import numpy as np
 import pandas as pd
 import pytest
+from copy import deepcopy
 
 import opentak.visualization as viz
 from opentak import TakBuilder, TakVisualizer
@@ -12,14 +11,14 @@ RANDOM_STATE = 42
 np.random.seed(RANDOM_STATE)
 
 NB_PATIENTS = 20
-NB_JOURS_END = 50
+nb_days_end = 50
 
 # Example TAK
-base = GenerateCohortTAK(nb_patients=NB_PATIENTS, nb_days_end=NB_JOURS_END)
+base = GenerateCohortTAK(nb_patients=NB_PATIENTS, nb_days_end=nb_days_end, random_state=RANDOM_STATE)
 base.initialisation_dataframe(
     treatment_name="A",
-    dose_mean=int(NB_JOURS_END / 10),
-    dose_std=int(NB_JOURS_END / 25),
+    dose_mean=int(nb_days_end / 10),
+    dose_std=int(nb_days_end / 25),
 )
 base.add_switch_gaussien("B")
 
@@ -32,12 +31,12 @@ tak = TakBuilder(base).build()
 tak.fit()
 array_tak = tak.sorted_array
 
-# Example TAK 2 (NB_JOURS_END higher to test unit_as_years)
+# Example TAK 2 (nb_days_end higher to test unit_as_years)
 
 NB_PATIENTS_2 = 20
-NB_JOURS_END_2 = 850
+nb_days_end_2 = 850
 
-base_2 = GenerateCohortTAK(nb_patients=NB_PATIENTS_2, nb_days_end=NB_JOURS_END_2)
+base_2 = GenerateCohortTAK(nb_patients=NB_PATIENTS_2, nb_days_end=nb_days_end_2)
 base_2.initialisation_dataframe()
 base_2 = base_2.add_in_out()
 base_2 = base_2.sort_values(by=["ID_PATIENT", "TIMESTAMP"])
@@ -46,14 +45,20 @@ base_2 = base_2.sort_values(by=["ID_PATIENT", "TIMESTAMP"])
 tak_2 = TakBuilder(base_2).build()
 tak_2.fit()
 
+# Test add switch linear and add drug holidays
+base_3 = GenerateCohortTAK(nb_patients=NB_PATIENTS_2, nb_days_end=nb_days_end_2, random_state=RANDOM_STATE)
+base_3.initialisation_dataframe()
+base_3.add_switch_linear(treatment_name="B")
+base_3.add_drug_holidays()
 
-def test_create_dict_label_color():
+
+def test_create_dico_label_color():
     # Given
 
     # When
     tak_viz = TakVisualizer(tak)
     # Then
-    assert set(tak_viz.dict_label_color.keys()) == {
+    assert set(tak_viz.dico_label_color.keys()) == {
         "A",
         "B",
         "start",
@@ -92,7 +97,7 @@ def test_tak_not_fitted():
     tak_viz_unfitted = TakVisualizer(tak_unfitted)
     tak_viz_fitted = TakVisualizer(tak_fitted)
     # Then
-    with pytest.raises(ValueError, match="TAK is not fit"):
+    with pytest.raises(ValueError, match="TAK is not fitted"):
         tak_viz_unfitted.process_visualization()
 
     tak_viz_fitted.process_visualization()
@@ -112,25 +117,56 @@ def test_agg_patients_notimplemented():
 def test_update_dict_colors():
     # Given
     tak_viz = TakVisualizer.__new__(TakVisualizer)
-    tak_viz.dict_label_color = {"first": "#000"}
+    tak_viz.dico_label_color = {"first": "#000"}
     arg_dict_color = {"second": "#000"}
     kwarg_dict_color = {"third": "#000"}
     # When
     tak_viz.update_colors(arg_dict_color, **kwarg_dict_color)
     # Then
-    assert set(tak_viz.dict_label_color) == {"first", "second", "third"}
+    assert set(tak_viz.dico_label_color) == {"first", "second", "third"}
 
 
-def test_dict_evt_for_legend():
+def test_dico_evt_for_legend():
     # Given
     tak = TakBuilder(base_log).build().fit()
-    tak_viz = TakVisualizer(tak, dict_evt_for_legend={"A": "Nouveau nom pour A"})
+    tak_viz = TakVisualizer(tak, dico_evt_for_legend={"A": "Nouveau nom pour A"})
     tak_viz.process_visualization()
     # When
     figplotly = tak_viz.get_plot()
     list_names = [heat["name"] for heat in figplotly.data]
     # Then
     assert "Nouveau nom pour A" in list_names
+
+
+dim_params = {"line_width": 1, "opacity": 1}
+
+
+@pytest.mark.parametrize(
+    "params, grid",
+    [
+        [None, "xy"],
+        [None, "x"],
+        [{"x": dim_params, "y": dim_params}, "xy"],
+        [{"x": dim_params, "y": dim_params}, "x"],
+        [{"x": dim_params}, "xy"],
+        [{"x": {"opacity": 1}, "y": dim_params}, "xy"],
+    ],
+)
+def test_grid_on_tak(params, grid):
+    # Given
+    tak = TakBuilder(base_log).build().fit()
+    tak_viz = TakVisualizer(tak)
+    tak_viz.process_visualization()
+    figplotly = tak_viz.get_plot()
+
+    # When
+    # add grid
+    figplotly = viz.add_grid_on_tak_fig(
+        figplotly,
+        grid=grid,
+        params=params,
+    )
+    # Then
 
 
 base_log_curves = pd.DataFrame(
@@ -228,7 +264,7 @@ def test_get_sub_clusters_names_default():
     # Given
     list_len_clusters_ordered = [2, 5, 3, 6]
     # When
-    sub_clusters_names_default = viz.get_sub_clusters_names_default(list_len_clusters_ordered)
+    sub_clusters_names_default = viz.get_clusters_names_default(list_len_clusters_ordered)
     # Then
     assert sub_clusters_names_default == ["A", "B", "C", "D"]
 
@@ -271,7 +307,7 @@ def test_sampling(method):
         axis=0,
     )
     tak = TakBuilder(base).build()
-    tak.fit(n_sub_clusters=1)
+    tak.fit(n_clusters=1)
     tak_viz = TakVisualizer(tak)
     tak_viz.process_visualization(**{"sampling_size": 2, "min_samples": 2, "agg_patients": method})
     # When
@@ -281,16 +317,16 @@ def test_sampling(method):
 
 def test_nb_shapes_in_fig():
     # Given
-    n_sub_clusters = 3
+    n_clusters = 3
     tak = TakBuilder(base_log_subclusters).build()
-    tak.fit(n_sub_clusters=n_sub_clusters)
+    tak.fit(n_clusters=n_clusters)
     tak_viz = TakVisualizer(tak)
     tak_viz.process_visualization()
     # When
     fig_with_sep = tak_viz.get_plot(add_sep=True)
     # Then
-    assert len(fig_with_sep.layout.annotations) == n_sub_clusters
-    assert len(fig_with_sep.layout.shapes) == n_sub_clusters + 1
+    assert len(fig_with_sep.layout.annotations) == n_clusters
+    assert len(fig_with_sep.layout.shapes) == n_clusters + 1
 
 
 def test_xaxis():
@@ -449,19 +485,19 @@ def test_xaxis_unit_as_months_offset_base_date_image_width():
 
 
 @pytest.mark.parametrize(
-    "n_sub_clusters",
-    [(1), (3)],
+    "n_clusters",
+    [1, 3],
 )
-def test_tak_split(n_sub_clusters):
+def test_tak_split(n_clusters):
     # Given
     tak = TakBuilder(base).build()
-    tak.fit(n_sub_clusters=n_sub_clusters)
+    tak.fit(n_clusters=n_clusters)
 
-    tak_viz = TakVisualizer(copy.deepcopy(tak))
+    tak_viz = TakVisualizer(deepcopy(tak))
     tak_viz.process_visualization()
 
-    initial_tak_values = np.copy(tak_viz.tak.sorted_array[0])
-    initial_cluster_values = np.array(tak_viz.tak.list_ids_clusters[0], copy=True, dtype=object)
+    initial_tak_values = deepcopy(tak_viz.tak.sorted_array)
+    initial_cluster_values = deepcopy(tak_viz.tak.list_ids_clusters)
 
     # When
     ids_to_select = [0, 1, 2, 3]
@@ -474,19 +510,19 @@ def test_tak_split(n_sub_clusters):
     # Test filtering
 
     # on the whole ordered base
-    assert len(tak_viz.tak.sorted_array[0]) == len(ids_to_select)
-    assert set(ids_to_select).issubset(set(np.concatenate(tak_viz.tak.list_ids_clusters[0]).ravel()))
+    assert len(np.concatenate(tak_viz.tak.sorted_array)) == len(ids_to_select)
+    assert set(ids_to_select).issubset(set(np.concatenate(tak_viz.tak.list_ids_clusters).ravel()))
 
     # Test cache
-    np.testing.assert_array_equal(tak_viz.memory_tak, initial_tak_values)
+    for cluster_number in range(len(initial_tak_values)):
+        np.testing.assert_array_equal(tak_viz.memory_tak[cluster_number], initial_tak_values[cluster_number])
+        np.testing.assert_array_equal(tak_viz.memory_clusters[cluster_number], initial_cluster_values[cluster_number])
 
-    for i in range(len(tak_viz.memory_clusters)):
-        np.testing.assert_array_equal(tak_viz.memory_clusters[i], initial_cluster_values[i])
 
-
+# FAILED
 def test_tak_split_cache():
     # Given
-    tak_viz = TakVisualizer(copy.deepcopy(tak))
+    tak_viz = TakVisualizer(deepcopy(tak))
     tak_viz.process_visualization()
 
     # When
@@ -504,8 +540,11 @@ def test_tak_split_cache():
 
 def test_tak_split_reset():
     # Given
-    tak_viz = TakVisualizer(copy.deepcopy(tak))
+    tak_viz = TakVisualizer(deepcopy(tak))
     tak_viz.process_visualization()
+
+    initial_tak_values = deepcopy(tak_viz.tak.sorted_array)
+    initial_cluster_values = deepcopy(tak_viz.tak.list_ids_clusters)
 
     # When
     ids_to_select = [0, 1, 2, 3]
@@ -519,10 +558,16 @@ def test_tak_split_reset():
     assert tak_viz.memory_tak is None
     assert tak_viz.memory_clusters is None
 
+    for cluster_number in range(len(initial_tak_values)):
+        np.testing.assert_array_equal(tak_viz.tak.sorted_array[cluster_number], initial_tak_values[cluster_number])
+        np.testing.assert_array_equal(
+            tak_viz.tak.list_ids_clusters[cluster_number], initial_cluster_values[cluster_number]
+        )
+
 
 def test_tak_split_wrong_ids():
     # Given
-    tak_viz = TakVisualizer(copy.deepcopy(tak))
+    tak_viz = TakVisualizer(deepcopy(tak))
     tak_viz.process_visualization()
 
     # When
@@ -544,8 +589,9 @@ def test_tak_split_wrong_ids():
 )
 def test_tak_dendrogram_option(dendrogram, result):
     """Tests if the dendrogram option adds a fig on the plotly output."""
+
     # Given
-    tak_viz = TakVisualizer(copy.deepcopy(tak))
+    tak_viz = TakVisualizer(deepcopy(tak))
     tak_viz.process_visualization()
 
     # When
