@@ -1,6 +1,7 @@
 import re
+from unittest import result
 from unittest.mock import patch
-
+import json
 import numpy as np
 import pandas as pd
 import pytest
@@ -55,7 +56,7 @@ def test_uncomputed_pdist_ok():
 
 @pytest.mark.parametrize(
     ("n_clusters, optimal_ordering"),
-    [(1, True), (1, False), (2, True), (2, False)],
+    [(1, True), (1, False), (2, True), (2, False), (3, True), (3, False)],
 )
 def test_tak(n_clusters, optimal_ordering):
     # Given
@@ -79,49 +80,61 @@ def test_tak_clusters_sum_ids_patients():
 sorted_array_expected = [
     np.array(
         [
-            [1, 6, 6, 6, 6, 6, 6, 2, 2, 2],
-            [1, 6, 6, 6, 6, 6, 6, 6, 6, 2],
             [1, 6, 7, 7, 2, 2, 2, 2, 2, 2],
-            [1, 6, 6, 6, 6, 6, 6, 6, 6, 6],
+            [1, 6, 6, 7, 2, 2, 2, 2, 2, 2],
         ]
     ),
     np.array(
         [
-            [1, 6, 6, 7, 2, 2, 2, 2, 2, 2],
+            [1, 6, 6, 6, 6, 6, 6, 2, 2, 2],
             [1, 6, 6, 6, 6, 6, 6, 6, 2, 2],
+            [1, 6, 6, 6, 6, 6, 6, 6, 6, 2],
+            [1, 6, 6, 6, 6, 6, 6, 6, 6, 6],
         ]
     ),
 ]
 
-sorted_array_expected_homogeneous_clust = [
-    np.array(
-        [
-            [1, 6, 6, 6, 6, 6, 6, 2, 2, 2],
-            [1, 6, 6, 6, 6, 6, 6, 6, 6, 2],
-            [1, 6, 7, 7, 2, 2, 2, 2, 2, 2],
-        ]
-    ),
-    np.array(
-        [
-            [1, 6, 6, 6, 6, 6, 6, 6, 6, 6],
-            [1, 6, 6, 7, 2, 2, 2, 2, 2, 2],
-            [1, 6, 6, 6, 6, 6, 6, 6, 2, 2],
-        ]
-    ),
-]
 
-sorted_array_expected_single_clust = [
-    np.array(
-        [
-            [1, 6, 6, 6, 6, 6, 6, 2, 2, 2],
-            [1, 6, 6, 6, 6, 6, 6, 6, 6, 2],
-            [1, 6, 7, 7, 2, 2, 2, 2, 2, 2],
-            [1, 6, 6, 6, 6, 6, 6, 6, 6, 6],
-            [1, 6, 6, 7, 2, 2, 2, 2, 2, 2],
-            [1, 6, 6, 6, 6, 6, 6, 6, 2, 2],
-        ]
+def test_tak_2clusters_order():
+    # Given
+    tak = TakBuilder(base).build(kind="hca")
+    # When
+    tak.fit(n_clusters=2, optimal_ordering=True)
+    # Then
+    for act, exp in zip(tak.sorted_array, sorted_array_expected):
+        assert act.shape == exp.shape
+        np.testing.assert_array_equal(act, exp)
+
+
+def test_golden_test():
+    """
+    Test TAK clustering pipeline on a synthetic dataset with realistic volumetry
+    """
+    n_clusters = 4
+    base = pd.read_csv("./data/golden_test_event_log_2000pat.csv")
+    base_out = pd.DataFrame(
+        {"ID_PATIENT": base["ID_PATIENT"].unique(), "TIMESTAMP": 10, "EVT": "out"}
     )
-]
+    base = pd.concat([base, base_out])
+    tak = TakBuilder(base).build(kind="hca")
+    tak.fit(n_clusters=n_clusters)
+    result = np.concatenate(tak.sorted_array)
 
-tak_hca = TakBuilder(base).build(kind="hca")
-tak_hca.fit(n_clusters=2)
+    with open(
+        "./data/golden_test_sorted_array_result.json", "r", encoding="utf-8"
+    ) as f:
+        loaded_lists = json.load(f)
+
+    result_expected = [np.array(lst, dtype=np.uint8) for lst in loaded_lists][0]
+
+    with open("./data/golden_test_list_ids_patients.json", "r", encoding="utf-8") as f:
+        loaded_lists_patients = json.load(f)
+
+    # Check that all the patients sequences are ordered in the same way in the final array
+    assert np.array_equal(result, result_expected)
+
+    # Check that the patients have been divided into the correct number of clusters
+    assert len(tak.list_ids_clusters) == n_clusters
+
+    # Check that the patients are in the correct clusters and in the correct order
+    assert tak.list_ids_clusters == loaded_lists_patients

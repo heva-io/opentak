@@ -81,16 +81,18 @@ class Checks:
             self.base[self.base["EVT"].eq("in")]["ID_PATIENT"].values
         )
 
-        patient_sans_in = set_patients - set(list_patients_in)
-        if len(patient_sans_in):
-            raise ValueError(f"Attention : Patients {patient_sans_in} do not have 'in'")
+        patient_without_in = set_patients - set(list_patients_in)
+        if len(patient_without_in):
+            raise ValueError(
+                f"Attention : Patients {patient_without_in} do not have 'in'"
+            )
 
-        pat_plusieurs_in = {
+        pat_several_in = {
             pat for pat, nb_in in Counter(list_patients_in).items() if nb_in != 1
         }
-        if pat_plusieurs_in:
+        if pat_several_in:
             raise ValueError(
-                f"Attention : Patients {pat_plusieurs_in} have multiple 'in'"
+                f"Attention : Patients {pat_several_in} have multiple 'in'"
             )
 
     def check_out_for_everybody(

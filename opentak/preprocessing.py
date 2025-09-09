@@ -9,7 +9,8 @@ import pandas as pd
 
 from opentak.clustering import Tak, TakHca
 from opentak.utils_events import checks
-from opentak.utils_events.utils import add_evt_duration, stable_sort
+from opentak.utils_events.preprocessing import stable_sort
+from opentak.utils_events.utils import add_evt_duration
 
 pd.set_option("future.no_silent_downcasting", True)
 
@@ -77,7 +78,6 @@ class TakBuilder:
         self._create_dict_label_id()
 
         if not max_days:
-            # find the highest timestamp in event log
             self.max_days = self.base.loc[self.base["EVT"].ne("end"), "TIMESTAMP"].max()
         else:
             self.max_days = max_days
@@ -101,8 +101,7 @@ class TakBuilder:
         ``"hca"``
             Classic Tak algorithm. Stands for Hierarchical Clustering Analysis.
 
-        :param kind: "hca" kind for Tak minimal release; other types will be introduced in next releases
-        should be built
+        :param kind: kind always set to "hca" for Tak minimal release; other types will be introduced in next releases
         :return: Tak object
         """
         if self._must_create_array:
@@ -171,13 +170,13 @@ class TakBuilder:
         self.base = base_tak
 
     def _create_array_from_evt_log(self) -> None:
-        """Convert the event log to a dense matrix of treatments for all patients.
+        """Convert the event log to a dense matrix of treatments labels IDs for all patients.
 
         This method transforms the event log DataFrame into a numpy array where each row
         represents a patient and each column represents a timestamp. The array contains
         integer IDs corresponding to the events at each timestamp.
 
-        :raises ValueError: if patient durations are invalid or patients have different sequence lengths
+        :raises ValueError: if patient durations are invalid
         """
         list_patients: list[np.ndarray] = []
         for id_group, df_group in self.base.loc[self.base["EVT"] != "end"].groupby(
@@ -194,16 +193,6 @@ class TakBuilder:
                 )
 
             patient_sequence = np.repeat(evt, durations)
-
-            # TODO remove this check, we should not need it at this stage
-            has_different_size = list_patients != [] and len(patient_sequence) != len(
-                list_patients[-1]
-            )
-            if has_different_size:
-                raise ValueError(
-                    f"Patient {id_group} has length {len(patient_sequence)} "
-                    f"(expected {len(list_patients[-1])}): {df_group}"
-                )
 
             list_patients.append(patient_sequence)
 
