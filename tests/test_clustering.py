@@ -95,20 +95,6 @@ sorted_array_expected = [
 ]
 
 
-sorted_array_expected_single_clust = [
-    np.array(
-        [
-            [1, 6, 6, 6, 6, 6, 6, 2, 2, 2],
-            [1, 6, 6, 6, 6, 6, 6, 6, 6, 2],
-            [1, 6, 7, 7, 2, 2, 2, 2, 2, 2],
-            [1, 6, 6, 6, 6, 6, 6, 6, 6, 6],
-            [1, 6, 6, 7, 2, 2, 2, 2, 2, 2],
-            [1, 6, 6, 6, 6, 6, 6, 6, 2, 2],
-        ]
-    )
-]
-
-
 def test_tak_2clusters_order():
     # Given
     tak = TakBuilder(base).build(kind="hca")
@@ -138,11 +124,11 @@ def test_golden_test():
         "./data/golden_test_sorted_array_result.json", "r", encoding="utf-8"
     ) as f:
         loaded_lists = json.load(f)
+
     result_expected = [np.array(lst, dtype=np.uint8) for lst in loaded_lists][0]
 
     with open("./data/golden_test_list_ids_patients.json", "r", encoding="utf-8") as f:
         loaded_lists_patients = json.load(f)
-    result_expected_patients = [np.array(lst) for lst in loaded_lists_patients]
 
     # Check that all the patients sequences are ordered in the same way in the final array
     assert np.array_equal(result, result_expected)
@@ -151,7 +137,4 @@ def test_golden_test():
     assert len(tak.list_ids_clusters) == n_clusters
 
     # Check that the patients are in the correct clusters and in the correct order
-    for cluster_ids, expected_ids in zip(
-        tak.list_ids_clusters, result_expected_patients
-    ):
-        assert np.array_equal(np.array(cluster_ids), expected_ids)
+    assert tak.list_ids_clusters == loaded_lists_patients
