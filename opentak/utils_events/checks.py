@@ -83,7 +83,9 @@ class Checks:
 
         patient_without_in = set_patients - set(list_patients_in)
         if len(patient_without_in):
-            raise ValueError(f"Attention : Patients {patient_without_in} do not have 'in'")
+            raise ValueError(
+                f"Attention : Patients {patient_without_in} do not have 'in'"
+            )
 
         pat_several_in = {
             pat for pat, nb_in in Counter(list_patients_in).items() if nb_in != 1

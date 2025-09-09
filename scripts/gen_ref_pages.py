@@ -7,7 +7,7 @@ https://mkdocstrings.github.io/recipes/#bind-pages-to-sections-themselves
 from pathlib import Path
 
 
-import mkdocs_gen_files  
+import mkdocs_gen_files
 
 nav = mkdocs_gen_files.Nav()
 
