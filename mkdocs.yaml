@@ -40,9 +40,12 @@ plugins:
       nav_file: SUMMARY.md
 nav:
   - Home: index.md
+  - Usage basique: basics.md
+  - Usage avancé: advanced.md
   - API Reference: reference/
 theme:
   name: material
+  logo: assets/logo.png
   palette:
     scheme: heva
   font:

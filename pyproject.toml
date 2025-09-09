@@ -9,10 +9,17 @@ authors = [
   { name="Quentin FLEURENT-NAMBOT", email="quentin.fleurent-nambot@heva-data.com" },
 ]
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.10, <4"
 license = "MPL-2.0"
 license-files = ["LICENSE"]
-dependencies = []
+dependencies = [
+  "pandas (>=2.2.1,<3)",
+  "plotly (>=5.0.0,<6)",
+  "numpy (>=2.2.2,<3)",
+  "scipy (>1.3.1,<2.0.0)",
+  "scikit-learn (>=1.0.2, <2.0.0)",
+  "more-itertools (>=8.7.0, <9.0.0)",
+]
 
 [project.urls]
 Homepage = "https://heva-io.github.io/opentak/latest/"
@@ -25,6 +32,8 @@ dev = [
     "mypy>=1.17.0, <2",
     "pytest>=8.4.1, <9",
     "ruff>=0.12.3, <1",
+    "pandas-stubs>=2.2.2.240603, <3.0.0",
+    "scipy-stubs>=1.15.3.0",
 ]
 doc = [
     "mike>=2.1.3, <3",
@@ -70,5 +79,9 @@ ignore = [
   "TD",
   "TRY003",
   "PLR2004",
-  "E501"
+  "E501",
+  "RET504", # variable assignment just before return but it makes the code more readable
+  "D400",
+  "D415",  # First line should end with a period, question mark, or exclamation point
+  # N803 checks snake_case for arguments. Checked but ignored for matrices : X
 ]
