@@ -52,7 +52,6 @@ class Tak:
 
     def fit(
         self,
-        n_clusters: int = 1,
     ) -> Tak:
         """Fit the TAK model (to be implemented by subclasses)."""
         raise NotImplementedError
