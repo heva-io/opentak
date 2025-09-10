@@ -289,7 +289,7 @@ class TakVisualizer:
 
         for id_traitement in reverse_dico_id:
             label = reverse_dico_id.get(id_traitement)
-            color = self.dico_label_color.get(label)
+            color = self.dico_label_color.get(str(label), None)
 
             if isinstance(color, tuple):
                 r = color[0]
@@ -518,7 +518,7 @@ class TakVisualizer:
                 z=np.where(self.sampled_patients == value, value, np.nan),
                 hoverinfo="none",
                 colorscale=[(0.0, dico_id_color[value]), (1.0, dico_id_color[value])],
-                name=f"{self.dico_evt_for_legend.get(self.dico_id_evt[value], self.dico_id_evt[value])}",
+                name=f"{self.dico_evt_for_legend.get(self.dico_id_evt[int(value)], self.dico_id_evt[int(value)])}",
                 showscale=False,
                 showlegend=True,
                 autocolorscale=False,
@@ -822,7 +822,10 @@ class TakVisualizer:
                 "title": f"Percentage of <br> {represented_patients_name} <br> <i>(over the whole cohort)</i>",
             },
         )
-        fig.update_yaxes(range=[0, 1], tickformat="0%").update_xaxes(self.fig_x_axis, title_standoff=0)
+        if self.fig_x_axis is not None:
+            fig.update_yaxes(range=[0, 1], tickformat="0%").update_xaxes(self.fig_x_axis, title_standoff=0)
+        else:
+            fig.update_yaxes(range=[0, 1], tickformat="0%")
         return fig
 
     def get_dendro(self, add_sep, **kwargs):
@@ -1019,6 +1022,8 @@ def soften_angles_sample(
     """
     # Convert into image and resize
     image = PIL.Image.fromarray(base_image.astype(np.uint8))
+    if image_width is None or image_length is None:
+        raise ValueError("image_width and image_length must be defined")
     image_bigsize = image.resize((image_width, int(image_length)), resample=PIL.Image.Resampling.NEAREST)
 
     # Apply blur
@@ -1080,7 +1085,11 @@ def add_grid_on_tak_fig(
     col = 2 if multiple_plots else 1
 
     # Define grid line functions mapping
-    grid_functions = {"x": fig_cop.add_vline, "y": fig_cop.add_hline}
+    # python
+    grid_functions = {
+        "x": lambda **kwargs: fig_cop.add_vline(**kwargs),
+        "y": lambda **kwargs: fig_cop.add_hline(**kwargs),
+    }
 
     for dim in grid:
         dim_params = params.get(dim, {})
