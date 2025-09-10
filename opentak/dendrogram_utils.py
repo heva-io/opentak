@@ -5,7 +5,7 @@ import scipy.cluster.hierarchy as sch
 from plotly.graph_objs import graph_objs
 
 ########################
-# Source of this code:
+# Source of this code:poetry
 # https://github.com/plotly/plotly.py/blob/master/packages/python/plotly/plotly/figure_factory/_dendrogram.py
 # Edited to prevent re-computation of linkage matrix
 
