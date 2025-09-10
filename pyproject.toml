@@ -20,6 +20,8 @@ dependencies = [
   "scikit-learn (>=1.0.2, <2.0.0)",
   "more-itertools (>=8.7.0, <9.0.0)",
   "plotly-stubs (>=0.0.6,<0.0.7)",
+  "pillow>=11.3.0",
+  "types-pillow>=10.2.0.20240822",
 ]
 
 [project.urls]
