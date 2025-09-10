@@ -76,10 +76,11 @@ def apply_mpl_style(fig: Figure | None = None) -> None:
         ax.xaxis.label.set_color(LABEL_TICK)
         ax.yaxis.label.set_color(LABEL_TICK)
         ax.grid(visible=True)
-        for tick in ax.get_xticklabels():
+        # type ignore because the type hints for matplotlib are not up to date
+        for tick in ax.get_xticklabels():  # type: ignore[operator]
             tick.set_fontname("Barlow")
             tick.set_fontweight("semibold")
-        for tick in ax.get_yticklabels():
+        for tick in ax.get_yticklabels():  # type: ignore[operator]
             tick.set_fontname("Barlow")
             tick.set_fontweight("semibold")
     fig.tight_layout()
@@ -89,4 +90,4 @@ def set_style() -> None:
     """Set plotly default style to 'tak_theme'."""
     pio.templates.default = "tak_theme"
     with contextlib.suppress(ImportError):
-        plt.style.use("tak_theme.heva")
+        plt.style.use("tak_theme.heva")  # type: ignore[attr-defined]

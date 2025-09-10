@@ -2,7 +2,7 @@ from collections import OrderedDict
 
 import numpy as np
 import scipy.cluster.hierarchy as sch
-from plotly.graph_objs import graph_objs
+from plotly import graph_objs
 
 ########################
 # Source of this code:poetry
