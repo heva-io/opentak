@@ -146,7 +146,9 @@ class _Dendrogram:
             # center into 0 and it will accidentally take it as leaves.
             l_border = int(min(self.zero_vals))
             r_border = int(max(self.zero_vals))
-            correct_leaves_pos = range(l_border, r_border + 1, int((r_border - l_border) / len(yvals)))
+            correct_leaves_pos = range(
+                l_border, r_border + 1, int((r_border - l_border) / len(yvals))
+            )
             # Regenerating the leaves pos from the self.zero_vals with equally intervals.
             self.zero_vals = list(correct_leaves_pos)
 
@@ -249,7 +251,9 @@ class _Dendrogram:
                 axis_key_labels = self.yaxis
             if axis_key_labels not in self.layout:
                 self.layout[axis_key_labels] = {}
-            self.layout[axis_key_labels]["tickvals"] = [zv * self.sign[axis_key] for zv in self.zero_vals]
+            self.layout[axis_key_labels]["tickvals"] = [
+                zv * self.sign[axis_key] for zv in self.zero_vals
+            ]
             self.layout[axis_key_labels]["ticktext"] = self.labels
             self.layout[axis_key_labels]["tickmode"] = "array"
 

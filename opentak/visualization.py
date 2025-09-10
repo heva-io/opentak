@@ -126,7 +126,11 @@ def _reduce_matrix(
     kernel_y_size = int(np.floor(y_size / expected_y))
     expected_y = int(np.ceil(y_size / kernel_y_size))
     expected_x = int(np.ceil(x_size / kernel_x_size))
-    padded_size = (expected_y * kernel_y_size, expected_x * kernel_x_size, *mat.shape[2:])
+    padded_size = (
+        expected_y * kernel_y_size,
+        expected_x * kernel_x_size,
+        *mat.shape[2:],
+    )
     padded_matrix = np.full(padded_size, np.nan)
     padded_matrix[:y_size, :x_size, ...] = mat
     new_shape = (expected_y, kernel_y_size, expected_x, kernel_x_size, *mat.shape[2:])
@@ -140,7 +144,9 @@ def _reduce_matrix(
         result = np.fromiter(
             (
                 np.bincount(
-                    _remove_nan_1d(padded_matrix.reshape(new_shape)[i, :, j, :].ravel()).astype("int8")
+                    _remove_nan_1d(
+                        padded_matrix.reshape(new_shape)[i, :, j, :].ravel()
+                    ).astype("int8")
                 ).argmax()
                 for i, j in product(range(new_shape[0]), range(new_shape[2]))
             ),
@@ -148,12 +154,16 @@ def _reduce_matrix(
             expected_x * expected_y,
         ).reshape(new_shape[0], new_shape[2])
     else:
-        raise NotImplementedError(f"Method {method} not implemented, please choose between 'max', 'median', 'mode'")
+        raise NotImplementedError(
+            f"Method {method} not implemented, please choose between 'max', 'median', 'mode'"
+        )
     return result, kernel_x_size, kernel_y_size
 
 
 class TakVisualizer:
-    def __init__(self, tak: Tak, dico_evt_for_legend: dict[str, str] | None = None) -> None:
+    def __init__(
+        self, tak: Tak, dico_evt_for_legend: dict[str, str] | None = None
+    ) -> None:
         """Creation of the TakVisualizer object.
 
         :param tak: Tak object with fitted clustering results
@@ -183,7 +193,9 @@ class TakVisualizer:
         self.axes: dict = {}
         self.sampled_patients = np.array([])
 
-        self.dico_id_evt: dict[int, str] = {value: key for key, value in self.tak.dict_label_id.items()}
+        self.dico_id_evt: dict[int, str] = {
+            value: key for key, value in self.tak.dict_label_id.items()
+        }
 
         self.set_values: set[str | int] = set()
         self.nb_patients: int | None = None
@@ -225,7 +237,9 @@ class TakVisualizer:
 
         self.dico_label_color = dict_color
 
-    def update_colors(self, dict_new_colors: dict[str, str] | None = None, **kwargs: Any) -> None:
+    def update_colors(
+        self, dict_new_colors: dict[str, str] | None = None, **kwargs: Any
+    ) -> None:
         """Update the color dictionary.
 
         Allows the user to set colors for specific labels.
@@ -252,13 +266,17 @@ class TakVisualizer:
         complete_id_list = np.concatenate(self.tak.list_ids_clusters).ravel()
 
         if not set(list_ids).issubset(set(complete_id_list)):
-            raise ValueError("The parameter 'list_id' does not match with the IDs in the TAK object")
+            raise ValueError(
+                "The parameter 'list_id' does not match with the IDs in the TAK object"
+            )
 
         # Save the current TAK output that will be modified
         self.memory_tak = deepcopy(self.tak.sorted_array)
         # Restrict TAK array to patients in the sub-cohort
         self.tak.sorted_array = [
-            self.tak.sorted_array[cluster][pd.Series(self.tak.list_ids_clusters[cluster]).isin(list_ids).to_numpy()]
+            self.tak.sorted_array[cluster][
+                pd.Series(self.tak.list_ids_clusters[cluster]).isin(list_ids).to_numpy()
+            ]
             for cluster in range(len(self.tak.sorted_array))
         ]
 
@@ -279,7 +297,9 @@ class TakVisualizer:
             self.tak.list_ids_clusters = self.memory_clusters
             self.memory_clusters = None
 
-    def _generate_plotly_color_dictionary(self, reverse_dico_id: dict[int, str]) -> dict:
+    def _generate_plotly_color_dictionary(
+        self, reverse_dico_id: dict[int, str]
+    ) -> dict:
         """Generate color dictionary for Plotly plotting.
 
         :param reverse_dico_id: Dict id -> label
@@ -329,7 +349,9 @@ class TakVisualizer:
 
         """
         if not self.tak.is_fitted:
-            raise ValueError("TAK is not fitted, the .fit() method has to be used in order to sort the patients.")
+            raise ValueError(
+                "TAK is not fitted, the .fit() method has to be used in order to sort the patients."
+            )
         if process_medoids:
             if not hasattr(self.tak, "sorted_array_medoides"):
                 raise TypeError("TAK should be a MetaTak if process_medoids is True")
@@ -340,10 +362,14 @@ class TakVisualizer:
             )
         else:
             patients = (
-                self.tak.sorted_array[num_cluster] if num_cluster is not None else np.concatenate(self.tak.sorted_array)
+                self.tak.sorted_array[num_cluster]
+                if num_cluster is not None
+                else np.concatenate(self.tak.sorted_array)
             )
 
-        self._run_process_visualisation(patients, soften_angles, unblurred_events, base_date, **kwargs)
+        self._run_process_visualisation(
+            patients, soften_angles, unblurred_events, base_date, **kwargs
+        )
 
     def _run_process_visualisation(
         self,
@@ -358,9 +384,13 @@ class TakVisualizer:
         # A ajouter en parametre ?
         agg_patients = kwargs.get("agg_patients", "mode")
 
-        sampling_size = kwargs.get("sampling_size", 1000)  # Nb pixels de la dimension maximale
+        sampling_size = kwargs.get(
+            "sampling_size", 1000
+        )  # Nb pixels de la dimension maximale
         min_dim = min(*patients.shape)
-        min_samples = min(min_dim, kwargs.get("min_samples", 100))  # Borne min de pixels de la dimension minimale
+        min_samples = min(
+            min_dim, kwargs.get("min_samples", 100)
+        )  # Borne min de pixels de la dimension minimale
 
         x_range = kwargs.get("x_range", (0, patients.shape[1]))  # L
         y_range = kwargs.get("y_range", (0, patients.shape[0]))  # = nb_patients
@@ -380,7 +410,9 @@ class TakVisualizer:
 
         # if sampling size > matrix, do not sample
         if sampl_sizes[0] < patients.shape[1] and sampl_sizes[1] < patients.shape[0]:
-            sampled_patients, kx, ky = _reduce_matrix(patients, sampl_sizes, agg_patients)
+            sampled_patients, kx, ky = _reduce_matrix(
+                patients, sampl_sizes, agg_patients
+            )
             x = np.arange(x_range[0], x_range[1], kx) + kx / 2
             y = np.arange(y_range[0], y_range[1], ky) + ky / 2
 
@@ -399,7 +431,9 @@ class TakVisualizer:
         image_length = kwargs.get("image_length", len(sampled_patients))
         image_width = kwargs.get("image_width", len(sampled_patients[0]))
 
-        image_bigsize, image_outlines = soften_angles_sample(sampled_patients, soften_angles, image_length, image_width)
+        image_bigsize, image_outlines = soften_angles_sample(
+            sampled_patients, soften_angles, image_length, image_width
+        )
         self.coef_width = len(sampled_patients[0]) / image_width
         self.coef_length = len(sampled_patients) / image_length
 
@@ -439,9 +473,16 @@ class TakVisualizer:
     ):
         if self.base_date:
             if unit_as_months:
-                start_date = self.base_date + pd.DateOffset(months=-nb_interval_pre_offset * nb_months)
-                list_months = pd.date_range(start=start_date, periods=nb_interval + 1, freq=f"{nb_months}ME")
-                ticktext = [f"{start_date.day:02}-{date.month:02}-{date.year}" for date in list_months]
+                start_date = self.base_date + pd.DateOffset(
+                    months=-nb_interval_pre_offset * nb_months
+                )
+                list_months = pd.date_range(
+                    start=start_date, periods=nb_interval + 1, freq=f"{nb_months}ME"
+                )
+                ticktext = [
+                    f"{start_date.day:02}-{date.month:02}-{date.year}"
+                    for date in list_months
+                ]
                 x_title = "in months"
             else:
                 ticktext = [
@@ -453,14 +494,15 @@ class TakVisualizer:
                 ]
                 x_title = "in years"
         elif unit_as_months:
-            ticktext = nb_months * np.arange(-nb_interval_pre_offset, nb_interval_post_offset + 1)
+            ticktext = nb_months * np.arange(
+                -nb_interval_pre_offset, nb_interval_post_offset + 1
+            )
             x_title = "in months"
         else:
             ticktext = np.arange(-nb_interval_pre_offset, nb_interval_post_offset + 1)
             x_title = "in years"
 
         return ticktext, x_title
-
 
     def get_plot(
         self,
@@ -531,7 +573,8 @@ class TakVisualizer:
         optimal_y_ticks = NiceScale(0, self.nb_patients)
 
         ticktext = [
-            optimal_y_ticks.nice_min + i * optimal_y_ticks.tick_spacing for i in range(optimal_y_ticks.max_ticks)
+            optimal_y_ticks.nice_min + i * optimal_y_ticks.tick_spacing
+            for i in range(optimal_y_ticks.max_ticks)
         ]
         tickvals = [tick // self.coef_length for tick in ticktext]
 
@@ -563,7 +606,9 @@ class TakVisualizer:
         if dendrogram:
             fig.update_layout(xaxis2=xaxis, yaxis2=yaxis)
 
-            dendro_fig, yaxis_range, threshold_vertical = self.get_dendro(add_sep, **kwargs)
+            dendro_fig, yaxis_range, threshold_vertical = self.get_dendro(
+                add_sep, **kwargs
+            )
 
             dendro_yaxis_layout = copy.deepcopy(DENDRO_AXIS_LAYOUT)
             dendro_yaxis_layout["range"] = yaxis_range
@@ -587,7 +632,11 @@ class TakVisualizer:
         else:
             fig.update_layout(xaxis=xaxis, yaxis=yaxis)
 
-        self.fig = self._add_sep_on_tak_fig(fig, dendrogram=dendrogram, **kwargs) if add_sep else fig
+        self.fig = (
+            self._add_sep_on_tak_fig(fig, dendrogram=dendrogram, **kwargs)
+            if add_sep
+            else fig
+        )
 
         return self.fig
 
@@ -600,7 +649,9 @@ class TakVisualizer:
     ):
         if unit_as_years or unit_as_months or self.base_date:
             if unit_as_years and unit_as_months:
-                raise ValueError("You should choose between unit_as_years and unit_as_months")
+                raise ValueError(
+                    "You should choose between unit_as_years and unit_as_months"
+                )
 
             if not unit_as_months and self.base_date:
                 unit_as_years = True
@@ -621,7 +672,9 @@ class TakVisualizer:
 
             list_indexes = [
                 int((offset + interval * one_interval) / self.coef_width)
-                for one_interval in range(-nb_interval_pre_offset, nb_interval_post_offset + 1)
+                for one_interval in range(
+                    -nb_interval_pre_offset, nb_interval_post_offset + 1
+                )
             ]
 
             ticktext, x_title = self._process_date_axis(
@@ -642,10 +695,13 @@ class TakVisualizer:
             }
 
         else:
-            optimal_x_ticks = NiceScale(self.axes["x"][0] - offset, self.axes["x"][-1] - offset)
+            optimal_x_ticks = NiceScale(
+                self.axes["x"][0] - offset, self.axes["x"][-1] - offset
+            )
 
             ticktext = [
-                optimal_x_ticks.nice_min + i * optimal_x_ticks.tick_spacing for i in range(optimal_x_ticks.max_ticks)
+                optimal_x_ticks.nice_min + i * optimal_x_ticks.tick_spacing
+                for i in range(optimal_x_ticks.max_ticks)
             ]
             tickvals = [(tick + offset) // self.coef_width for tick in ticktext]
 
@@ -684,7 +740,10 @@ class TakVisualizer:
 
         np_count_med = np.bincount(base_after_tak[:, day_d])
 
-        dic_count_med = {self.dico_id_evt.get(med_id, "None"): count for med_id, count in enumerate(np_count_med)}
+        dic_count_med = {
+            self.dico_id_evt.get(med_id, "None"): count
+            for med_id, count in enumerate(np_count_med)
+        }
         serie_count_med = pd.Series(dic_count_med).reindex(list_values).fillna(0)
 
         serie_count_pour_med = serie_count_med / sum(serie_count_med)
@@ -716,21 +775,30 @@ class TakVisualizer:
             )
         events_not_shown = [] if events_not_shown is None else events_not_shown
         events_not_shown = list(set(events_not_shown))
-        events_not_in_percent = [] if events_not_in_percent is None else events_not_in_percent
+        events_not_in_percent = (
+            [] if events_not_in_percent is None else events_not_in_percent
+        )
         events_not_in_percent = list(set(events_not_in_percent))
 
         base_after_tak = self.current_processed_patients.copy()
         x = np.arange(0, len(self.tak.sorted_array[0][0]))
 
-        y_nb_meds = [self._count_evt_at_day_d(base_after_tak, day_d) for day_d in range(base_after_tak.shape[1])]
+        y_nb_meds = [
+            self._count_evt_at_day_d(base_after_tak, day_d)
+            for day_d in range(base_after_tak.shape[1])
+        ]
 
         df_base_tak = pd.DataFrame(self.tak.base)
 
-        evt_of_interest = [evt for evt in df_base_tak["EVT"].unique() if evt not in events_not_shown]
+        evt_of_interest = [
+            evt for evt in df_base_tak["EVT"].unique() if evt not in events_not_shown
+        ]
 
         # Axe des y - valeurs des courbes
         # Dico des series temporelles, avec valeur par défaut au cas où aucun patient n'a l'un des evt à ignorer
-        data_lines: MutableMapping[str, list[int]] = defaultdict(lambda: [0] * len(y_nb_meds))
+        data_lines: MutableMapping[str, list[int]] = defaultdict(
+            lambda: [0] * len(y_nb_meds)
+        )
         for evt in df_base_tak["EVT"].unique():
             data_lines[evt] = [count_med[evt] for count_med in y_nb_meds]
 
@@ -739,10 +807,14 @@ class TakVisualizer:
         if events_not_in_percent:
             percent_patients = [
                 (1 - sum(nb_pat_remove))
-                for nb_pat_remove in zip(*[data_lines[x] for x in events_not_in_percent], strict=True)
+                for nb_pat_remove in zip(
+                    *[data_lines[x] for x in events_not_in_percent], strict=True
+                )
             ]
             fig = make_subplots(rows=2, cols=1, row_heights=[0.8, 0.2])
-            prefix_top_graph = '<b><span style="text-decoration: underline;">Top graph :</span><br>'
+            prefix_top_graph = (
+                '<b><span style="text-decoration: underline;">Top graph :</span><br>'
+            )
         else:
             percent_patients = [1] * len(y_nb_meds)
             fig = make_subplots(rows=1, cols=1)
@@ -767,7 +839,9 @@ class TakVisualizer:
             if evt not in events_not_in_percent:
                 y_evt = [
                     np.nan if percent_pt < threshold_cent else percent_evt / percent_pt
-                    for percent_evt, percent_pt in zip(data_lines[evt], percent_patients, strict=True)
+                    for percent_evt, percent_pt in zip(
+                        data_lines[evt], percent_patients, strict=True
+                    )
                 ]
 
                 line = {"color": f"{self.dico_label_color[evt]}"}
@@ -823,7 +897,9 @@ class TakVisualizer:
             },
         )
         if self.fig_x_axis is not None:
-            fig.update_yaxes(range=[0, 1], tickformat="0%").update_xaxes(self.fig_x_axis, title_standoff=0)
+            fig.update_yaxes(range=[0, 1], tickformat="0%").update_xaxes(
+                self.fig_x_axis, title_standoff=0
+            )
         else:
             fig.update_yaxes(range=[0, 1], tickformat="0%")
         return fig
@@ -832,7 +908,9 @@ class TakVisualizer:
         # Get clusters size if not given throught list_len_clusters_ordered
         list_len_clusters_ordered = kwargs.get("list_len_clusters_ordered")
         if list_len_clusters_ordered is None:
-            list_len_clusters_ordered = [len(cluster) for cluster in self.tak.list_ids_clusters]
+            list_len_clusters_ordered = [
+                len(cluster) for cluster in self.tak.list_ids_clusters
+            ]
 
         fig, yaxis_range, threshold_vertical = create_dendrogram(
             self.tak.linkage_total,
@@ -843,7 +921,9 @@ class TakVisualizer:
 
         return fig, yaxis_range, threshold_vertical
 
-    def _add_sep_on_tak_fig(self, fig: go.Figure, dendrogram: bool, **kwargs) -> go.Figure:
+    def _add_sep_on_tak_fig(
+        self, fig: go.Figure, dendrogram: bool, **kwargs
+    ) -> go.Figure:
         # ruff: noqa: D205
         """Add horizontal separation between clusters of the tak, and annotations
         on the right with the name and the number of patients on each cluster.
@@ -881,11 +961,15 @@ class TakVisualizer:
         # Get clusters size if not given throught list_len_clusters_ordered
         list_len_clusters_ordered = kwargs.get("list_len_clusters_ordered")
         if list_len_clusters_ordered is None:
-            list_len_clusters_ordered = [len(cluster) for cluster in self.tak.list_ids_clusters]
+            list_len_clusters_ordered = [
+                len(cluster) for cluster in self.tak.list_ids_clusters
+            ]
 
         # Default paraameters
         write_annotation = kwargs.get("write_annotation", True)
-        clusters_names = kwargs.get("clusters_names", get_clusters_names_default(list_len_clusters_ordered))
+        clusters_names = kwargs.get(
+            "clusters_names", get_clusters_names_default(list_len_clusters_ordered)
+        )
         color_annotation = kwargs.get("color_annotation", "#4CA094")
         width_line = kwargs.get("width_line", 3)
         size_annotation = kwargs.get("size_annotation", 10)
@@ -994,7 +1078,9 @@ class TakVisualizer:
         :param path_folder: Folder name to store results
         :param file_name: Result file name
         """
-        export_data = ExportTAK(self.tak.sorted_array, self.dico_label_color, self.tak.dict_label_id)
+        export_data = ExportTAK(
+            self.tak.sorted_array, self.dico_label_color, self.tak.dict_label_id
+        )
 
         path_folder = Path(path_folder)
 
@@ -1024,7 +1110,9 @@ def soften_angles_sample(
     image = PIL.Image.fromarray(base_image.astype(np.uint8))
     if image_width is None or image_length is None:
         raise ValueError("image_width and image_length must be defined")
-    image_bigsize = image.resize((image_width, int(image_length)), resample=PIL.Image.Resampling.NEAREST)
+    image_bigsize = image.resize(
+        (image_width, int(image_length)), resample=PIL.Image.Resampling.NEAREST
+    )
 
     # Apply blur
     image_outlines = image_bigsize.filter(ImageFilter.ModeFilter(soften_angles))
@@ -1033,7 +1121,9 @@ def soften_angles_sample(
     return image_bigsize, image_outlines
 
 
-def get_clusters_names_default(list_len_clusters_ordered: list, max_nb_clusters: int = 26) -> list:
+def get_clusters_names_default(
+    list_len_clusters_ordered: list, max_nb_clusters: int = 26
+) -> list:
     """Return the list of default clusters names (reversed alphabetic order, ending by A).
 
     :param list_len_clusters_ordered: list of the number of patients in each
@@ -1043,7 +1133,9 @@ def get_clusters_names_default(list_len_clusters_ordered: list, max_nb_clusters:
     """
     nb_clusters = len(list_len_clusters_ordered)
     if nb_clusters > max_nb_clusters:
-        raise ValueError(f"The number of clusters should be lower than {max_nb_clusters}.")
+        raise ValueError(
+            f"The number of clusters should be lower than {max_nb_clusters}."
+        )
     clusters_names_default = list(string.ascii_uppercase[:nb_clusters])
     return clusters_names_default
 
@@ -1106,7 +1198,9 @@ def add_grid_on_tak_fig(
 
         # Computing max value of the TAK graph (we must exclude graphs that are not heatmaps, eg scatters
         # representing the dendogram
-        val_max = max([max(trace[dim]) for trace in fig_cop.data if isinstance(trace, go.Heatmap)])
+        val_max = max(
+            [max(trace[dim]) for trace in fig_cop.data if isinstance(trace, go.Heatmap)]
+        )
 
         # Get the appropriate grid function for this dimension
         add_grid_line = grid_functions.get(dim)
@@ -1147,8 +1241,12 @@ class NiceScale:
         """
         self.lst = self.nice_num(self.max_point - self.min_point, False)
         self.tick_spacing = self.nice_num(self.lst / (self.max_ticks - 1), True)
-        self.nice_min = math.floor(self.min_point / self.tick_spacing) * self.tick_spacing
-        self.nice_max = math.ceil(self.max_point / self.tick_spacing) * self.tick_spacing
+        self.nice_min = (
+            math.floor(self.min_point / self.tick_spacing) * self.tick_spacing
+        )
+        self.nice_max = (
+            math.ceil(self.max_point / self.tick_spacing) * self.tick_spacing
+        )
 
     def nice_num(self, lst, rround):
         """Return a "nice" number approximately equal to range.

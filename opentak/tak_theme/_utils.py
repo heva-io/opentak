@@ -12,6 +12,10 @@ if TYPE_CHECKING:
 
     from matplotlib.figure import Figure
 
+import contextlib
+
+import matplotlib.pyplot as plt
+
 from opentak.tak_theme._colors import LABEL_TICK
 
 
@@ -63,8 +67,6 @@ def interpolate_colors(
 
 def apply_mpl_style(fig: Figure | None = None) -> None:
     """Apply theme to a matplotlib figure."""
-    import matplotlib.pyplot as plt
-
     if fig is None:
         fig = plt.gcf()
 
@@ -86,17 +88,5 @@ def apply_mpl_style(fig: Figure | None = None) -> None:
 def set_style() -> None:
     """Set plotly default style to 'tak_theme'."""
     pio.templates.default = "tak_theme"
-
-    try:
-        import matplotlib.pyplot as plt
-
+    with contextlib.suppress(ImportError):
         plt.style.use("tak_theme.heva")
-    except ImportError:
-        pass
-
-    try:
-        import altair as alt
-
-        alt.themes.enable("heva")
-    except ImportError:
-        pass

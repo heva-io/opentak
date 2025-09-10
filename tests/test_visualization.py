@@ -14,7 +14,9 @@ NB_PATIENTS = 20
 nb_days_end = 50
 
 # Example TAK
-base = GenerateCohortTAK(nb_patients=NB_PATIENTS, nb_days_end=nb_days_end, random_state=RANDOM_STATE)
+base = GenerateCohortTAK(
+    nb_patients=NB_PATIENTS, nb_days_end=nb_days_end, random_state=RANDOM_STATE
+)
 base.initialisation_dataframe(
     treatment_name="A",
     dose_mean=int(nb_days_end / 10),
@@ -46,7 +48,9 @@ tak_2 = TakBuilder(base_2).build()
 tak_2.fit()
 
 # Test add switch linear and add drug holidays
-base_3 = GenerateCohortTAK(nb_patients=NB_PATIENTS_2, nb_days_end=nb_days_end_2, random_state=RANDOM_STATE)
+base_3 = GenerateCohortTAK(
+    nb_patients=NB_PATIENTS_2, nb_days_end=nb_days_end_2, random_state=RANDOM_STATE
+)
 base_3.initialisation_dataframe()
 base_3.add_switch_linear(treatment_name="B")
 base_3.add_drug_holidays()
@@ -111,7 +115,9 @@ def test_agg_patients_notimplemented():
         NotImplementedError,
         match="not implemented, please choose between 'max', 'median', 'mode'",
     ):
-        tak_viz.process_visualization(sampling_size=3, min_samples=3, agg_patients="mean")
+        tak_viz.process_visualization(
+            sampling_size=3, min_samples=3, agg_patients="mean"
+        )
 
 
 def test_update_dict_colors():
@@ -220,7 +226,9 @@ def test_graph_events_rep_on_tak_values():
     percent_a = [0, 1, 1, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0, 0, 0]
 
     # When
-    fig = tak_viz_curves.graph_events_rep_on_tak(events_not_shown=["start", "end", "in", "out", "B"])
+    fig = tak_viz_curves.graph_events_rep_on_tak(
+        events_not_shown=["start", "end", "in", "out", "B"]
+    )
     # Then
     assert list(fig.data[1]["y"]) == percent_a
 
@@ -264,7 +272,9 @@ def test_get_sub_clusters_names_default():
     # Given
     list_len_clusters_ordered = [2, 5, 3, 6]
     # When
-    sub_clusters_names_default = viz.get_clusters_names_default(list_len_clusters_ordered)
+    sub_clusters_names_default = viz.get_clusters_names_default(
+        list_len_clusters_ordered
+    )
     # Then
     assert sub_clusters_names_default == ["A", "B", "C", "D"]
 
@@ -302,14 +312,18 @@ def test_sampling(method):
     base = pd.concat(
         [
             base_log_subclusters,
-            base_log_subclusters.assign(ID_PATIENT=base_log_subclusters["ID_PATIENT"] + 4),
+            base_log_subclusters.assign(
+                ID_PATIENT=base_log_subclusters["ID_PATIENT"] + 4
+            ),
         ],
         axis=0,
     )
     tak = TakBuilder(base).build()
     tak.fit(n_clusters=1)
     tak_viz = TakVisualizer(tak)
-    tak_viz.process_visualization(**{"sampling_size": 2, "min_samples": 2, "agg_patients": method})
+    tak_viz.process_visualization(
+        **{"sampling_size": 2, "min_samples": 2, "agg_patients": method}
+    )
     # When
     fig_with_sep = tak_viz.get_plot(add_sep=True)
     # Then
@@ -474,7 +488,9 @@ def test_xaxis_unit_as_months_offset_base_date():
 def test_xaxis_unit_as_months_offset_base_date_image_width():
     # Given
     tak_viz = TakVisualizer(tak_2)
-    tak_viz.process_visualization(base_date=pd.to_datetime("2010-01-04"), image_width=425)
+    tak_viz.process_visualization(
+        base_date=pd.to_datetime("2010-01-04"), image_width=425
+    )
     # When
     fig = tak_viz.get_plot(unit_as_months=True, offset=366)
     # Then
@@ -511,12 +527,19 @@ def test_tak_split(n_clusters):
 
     # on the whole ordered base
     assert len(np.concatenate(tak_viz.tak.sorted_array)) == len(ids_to_select)
-    assert set(ids_to_select).issubset(set(np.concatenate(tak_viz.tak.list_ids_clusters).ravel()))
+    assert set(ids_to_select).issubset(
+        set(np.concatenate(tak_viz.tak.list_ids_clusters).ravel())
+    )
 
     # Test cache
     for cluster_number in range(len(initial_tak_values)):
-        np.testing.assert_array_equal(tak_viz.memory_tak[cluster_number], initial_tak_values[cluster_number])
-        np.testing.assert_array_equal(tak_viz.memory_clusters[cluster_number], initial_cluster_values[cluster_number])
+        np.testing.assert_array_equal(
+            tak_viz.memory_tak[cluster_number], initial_tak_values[cluster_number]
+        )
+        np.testing.assert_array_equal(
+            tak_viz.memory_clusters[cluster_number],
+            initial_cluster_values[cluster_number],
+        )
 
 
 # FAILED
@@ -559,9 +582,12 @@ def test_tak_split_reset():
     assert tak_viz.memory_clusters is None
 
     for cluster_number in range(len(initial_tak_values)):
-        np.testing.assert_array_equal(tak_viz.tak.sorted_array[cluster_number], initial_tak_values[cluster_number])
         np.testing.assert_array_equal(
-            tak_viz.tak.list_ids_clusters[cluster_number], initial_cluster_values[cluster_number]
+            tak_viz.tak.sorted_array[cluster_number], initial_tak_values[cluster_number]
+        )
+        np.testing.assert_array_equal(
+            tak_viz.tak.list_ids_clusters[cluster_number],
+            initial_cluster_values[cluster_number],
         )
 
 

@@ -1,7 +1,5 @@
 """OPENTAK plotly theme."""
 
-from importlib import metadata
-
 from webcolors import hex_to_rgb
 
 from opentak.tak_theme import palettes
@@ -16,6 +14,3 @@ __all__ = (
     "palettes",
     "set_style",
 )
-
-# meta = metadata.metadata("tak_theme")
-# __version__ = meta["Version"]
