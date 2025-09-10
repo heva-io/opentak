@@ -1,10 +1,10 @@
-# Usage avancé
+# Advanced Usage
 
-## Choix de l'algorithme de clustering
+## Choosing the Clustering Algorithm
 
 #### Hierarchical Agglomerative Clustering
 
-Cet algorithme est le plus recommandé lorsque la population ne contient pas trop de patients.
+This algorithm is recommended when the population does not contain too many patients (< 8000 patients).
 
 ```python
 from tak import TakBuilder, TakVisualizer
@@ -19,96 +19,25 @@ tak_hca_viz.get_plot()
 ![TAK HCA](assets/tak_hca_example.svg)
 
 !!! note
-    Au moment du `fit()`, il est possible de changer de distance (`hamming` par défaut), ou de méthode de linkage (`ward`par défaut).
+    When calling `fit()`, it is possible to change the distance (`hamming` by default), or the linkage method (`ward` by default).
 
-#### Random
+## Fit Parameters
 
-Cet algorithme est utilisé pour avoir un exemple de TAK sans clustering (pour les benchmarks par exemple).
+- `n_clusters`: the number of clusters to search for
+- `method`: method for computing the linkage matrix. Possible values are "ward", "single", "complete", "average". This parameter can often be left at the default value, which is "ward".
+- `distance`: distance used for clustering. Can be any possible value for the metric argument of [scipy.spatial.distance.pdist](https://docs.scipy.org/doc/scipy-1.16.0/reference/generated/scipy.spatial.distance.pdist.html), "hamming" by default. Can also be a custom function, see [#customize-the-distance](#customize-the-distance)
+- `optimal_ordering`: Reorder tree leaves to minimize the distances between two successive leaves. This allows for better appreciation of the variety of sequences within each cluster in the visualization by grouping similar sequences together. This defaults to True, but can be switched off by providing False given this algorithm is computationnaly expensive. 
 
-```python
-from tak import TakBuilder, TakVisualizer
+## Customizing the TAK Result
 
-tak_random = TakBuilder(base).build("random")
-tak_random.fit()
-tak_random_viz = TakVisualizer(tak_random)
-tak_random_viz.process_visualization()
-tak_random_viz.get_plot()
-```
+#### Change the color of an event
 
-![TAK Random](assets/tak_random_example.svg)
+The `update_colors()` function allows to change the colors of events displayed on the TAK.
 
+It can take different arguments:
 
-#### Custom sort
-
-Le TAK "custom" nous permet de définir nous même le clustering des patients sur le TAK. Il y a deux utilisations principales :
-
-- une fois que l'on a déjà réalisé un TAK classique, ajouter des nouveaux éléments sur l'image résultante du TAK (événements ponctuels, événements antérieurs ou postérieurs à la période de suivi) tout en conservant l'ordre des patients.
-- Sauvegarder le résultat d'un tak en sauvegardant les clusters pour pouvoir reproduire et retravailler des visuels sans avoir à refaire de fit.
-
-```python
-from tak import TakBuilder, TakVisualizer
-
-tak_custom = TakBuilder(base).build("custom_sort")
-tak_custom.fit(list_ids_cluster = [[list(range(NB_PATIENTS))]])
-tak_custom_viz = TakVisualizer(tak_custom)
-tak_custom_viz.process_visualization()
-tak_custom_viz.get_plot()
-```
-
-![TAK Custom](assets/tak_custom_example.svg)
-
-!!! info
-    Le format attendu est le même que l'attribut `tak_fitted.list_ids_cluster` à savoir une liste d'arrays numpy. On peut donc directement réinjecter le résultat d'un tak dans un tak custom. De manière plus claire, la structure est :
-
-    - clusters (list)
-        - numpy array of patient ids (int). Not patient index
-
-Exemple de clusters faits à la main :
-```python
-from tak import TakBuilder, TakVisualizer
-
-tak_custom = TakBuilder(base).build("custom_sort")
-tak_custom.fit(
-    list_ids_cluster=[
-        list(range(NB_PATIENTS // 3)),
-        list(range(NB_PATIENTS // 3, NB_PATIENTS)),
-    ]
-)
-tak_custom_viz = TakVisualizer(tak_custom)
-tak_custom_viz.process_visualization()
-tak_custom_viz.get_plot(add_sep=True)
-```
-
-![TAK Custom with clusters](assets/tak_custom_clusters_example.svg)
-
-## Paramètrage du fit
-
-!!! note "Meta Tak"
-    Ce paramétrage est aussi valable pour un meta tak, donnant le paramétrage du clustering des séquances médoides. 
-
-- `n_clusters`: le nombre de clusters à chercher
-- `method`: méthode pour le calcul de la matrice de linkage. Les valeurs possibles sont "ward", "single", "complete", "average". Ce paramètre peut souvent être laissé à la valeur apr défaut, qui est "ward"
-- `distance`: distance utilisée pour faire le clustering. Peut être n'importe quelle valeur possible pour l'argument metric de [scipy.spatial.distance.pdist](https://docs.scipy.org/doc/scipy-1.16.0/reference/generated/scipy.spatial.distance.pdist.html), "hamming" par défaut. Peut aussi être une fonction personallisée voir [#customiser-la-distance](#customiser-la-distance)
-
-### Optimal ordering 
-
-Lorsqu'on fait un clustering hiérarchique, plusieurs paramètres concernant l'optimal ordering peuvent être donnés à la méthode fit. L'optimal ordering consiste à réordonner les feuilles d'un arbre afin de minimiser la distance entre deux feuilles successives. Cela permet dans la visualisation de mieux apprécier la variété des séquences au sein de chaque cluster en mettant les séquences proches ensemble. Cependant, cet algorithme étant coûteux en tant de calcul, deux paramètres booléens sont disponibles pour spécifier le compromis souhaité. 
-
-- `global_optimal_ordering` (default False): faire l'optimal ordering sur tout l'arbre. Compléxité en $O(n_{patiens}^2)$.
-- `optimal_ordering` (default True): faire l'optimal ordering après le clustering, au sein de chaque cluster uniquement. Compléxité en $O(n_{PatClusterMax}^2)$, où $n_{PatClusterMax}$ est la taille du plus grand cluster trouvé. Peut aboutir sur la figure à des frontières étranges entre les clusters. 
-
-
-
-## Customiser le résultat du TAK
-
-#### Changer les couleurs d'un évènement
-
-La fonction `update_colors()` permet de changer les couleurs d'évènements affichés sur le TAK.
-
-Elle peut prendre différents arguments :
-
-- Un dictionnaire `{"nom de l'évènement" : "couleur en RGB ou Hexadécimal"}`
-- Le nom de l'évènement en argument et la couleur en valeur
+- A dictionary `{"event name": "color in RGB or Hexadecimal"}`
+- The event name as an argument and the color as a value
 
 ```python
 from tak import TakBuilder, TakVisualizer
@@ -127,21 +56,18 @@ tak_viz.get_plot()
 ![TAK update colors](assets/tak_update_colors.svg)
 
 !!! warning
-    Il faut utiliser la fonction `process_visualization()` **après** et non **avant** avoir changé les couleurs.
+    `process_visualization()` must be used **after** and not **before** changing the colors.
 
-#### Changer le nom des événements
+#### Change the name of events
 
-Lors de l'appel de la classe `TakVisualizer()` il est possible de passer le dictionnaire `dico_evt_for_legend` qui permet de renommer le nom des événements dans la légende.
-
-!!! note
-    Ces nouveaux noms de légendes sont effectifs pour la figure du TAK ainsi que pour les **courbes sous le TAK**.
+When calling the `TakVisualizer()` class, it is possible to pass a dictionary `dico_evt_for_legend` which allows to rename the event names in the legend.
 
 ```python
 from tak import TakBuilder, TakVisualizer
 
 tak = TakBuilder(base).build()
 tak.fit()
-tak_viz = TakVisualizer(tak, dico_evt_for_legend = {"A": "Nouveau nom pour A"})
+tak_viz = TakVisualizer(tak, dico_evt_for_legend = {"A": "New name for A"})
 
 tak_viz.process_visualization()
 tak_viz.get_plot()
@@ -149,15 +75,14 @@ tak_viz.get_plot()
 
 ![TAK update legend](assets/tak_update_legend_names.svg)
 
+#### Add a grid to the TAK
 
-#### Ajouter une grille sur le TAK
-
-Il est possible d'ajouter une grille sur la heatmap du TAK, sur l'axe de X et/ou sur l'axe des Y, via `add_xgrid`, `add_ygrid`.
-Les fonctions plotly utilisées sont `add_hline()` et `add_vline()`.
-Il est également possible de changer les paramètres entrant dans ces fonctions via `xgrid_params` et `ygrid_params`.
+It is possible to add a grid to the TAK heatmap, on the X and/or Y axis, via `add_xgrid`, `add_ygrid`.
+The plotly functions used are `add_hline()` and `add_vline()`.
+It is also possible to change the parameters passed to these functions via `xgrid_params` and `ygrid_params`.
 
 !!! note
-    Par défaut on va ajouter la grille à la fois sur X et sur Y, avec pour arguments `xgrid_params` et `ygrid_params` :
+    By default, the grid is added to both X and Y, with the following arguments for `xgrid_params` and `ygrid_params`:
     `line_width = 0.5`, `line_dash = "dot"`, `line_color = "grey"`, `opacity = 0.5`
 
 ```python
@@ -184,8 +109,7 @@ fig
 
 ### Calendar x axes
 
-Il est possible de demander à ce que les ticks de l'axe des abscisses soit noté tous les N mois,
-en mettant unit_as_months à True et nb_months à N.
+It is possible to request for the ticks on the x-axis to be marked every N months, by setting `unit_as_months` to True and `nb_months` to N.
 
 ```python
 tak_viz.get_plot(unit_as_months=True, nb_months=2)
@@ -193,7 +117,7 @@ tak_viz.get_plot(unit_as_months=True, nb_months=2)
 
 ![tick_every_2_months](assets/tak_xaxes_2months.svg)
 
-Si le suivi du TAK est long on peut également faire un axe des X en année via l'argument `unit_as_years`.
+If the follow-up period is long, the x-axis can also be formatted in years with the `unit_as_years` argument.
 
 ```python
 tak_viz.get_plot(unit_as_years=True)
@@ -201,8 +125,8 @@ tak_viz.get_plot(unit_as_years=True)
 
 ![tick_every_year](assets/tak_xaxes_years.svg)
 
-Il est également possible de convertir en dates via l'argument `base_date`.
-Attention à ne pas indiquer `unit_as_years=True`, ça supprimera les dates...
+It is also possible to convert to dates via the `base_date` argument.
+Be careful not to indicate `unit_as_years=True`, as this will remove the dates...
 
 ```python
 tak_viz.process_visualization(base_date=pd.to_datetime("2014-01-01"))
@@ -211,9 +135,9 @@ tak_viz.get_plot(unit_as_years=False)
 
 ![tick_2014_year](assets/tak_xaxes_years_2014.svg)
 
-## Afficher les clusters
+## Display clusters
 
-En précisant en argument de `fit` le nombre de clusters `n_clusters`, il est possible de trouver et d'afficher automatiquement les clusters de patient.
+By specifying the number of clusters `n_clusters` as an argument to `fit`, it is possible to automatically find and display patient clusters.
 
 ```python
 from tak import TakBuilder, TakVisualizer
@@ -231,8 +155,7 @@ figplotly_with_default_sep.show()
 
 ![TAK clusters](assets/tak_clusters.svg)
 
-La taille des annotations, ainsi que leur couleur peut être changée,
-via `size_annotation` (default `10`) et `color_annotation` (default `"#4CA094"`).
+The size of the annotations, as well as their color, can be changed via `size_annotation` (default `10`) and `color_annotation` (default `"#4CA094"`).
 
 ```python
 figplotly_with_changed_annotation = tak_viz.get_plot(
@@ -243,10 +166,10 @@ figplotly_with_changed_annotation.show()
 
 ![TAK clusters](assets/tak_clusters_annotation.svg)
 
-La taille des barres horizontales peut être changée via `coef_line_extension`,
-elle est de `0.15` par défaut (pour une extension des barres à droite de 15%).
-L'épaisseur des barres horizontales peut être changée via `width_line`,
-elle est de `3` par défaut.
+The size of the horizontal lines can be changed via `coef_line_extension`,
+it is `0.15` by default (for a right extension of the bars by 15%).
+The thickness of the horizontal bars can be changed via `width_line`,
+it is `3` by default.
 
 ```python
 figplotly_with_changed_line_extension_and_width = tak_viz.get_plot(
@@ -257,23 +180,23 @@ figplotly_with_changed_line_extension_and_width.show()
 
 ![TAK clusters](assets/tak_clusters_lines.svg)
 
-## Customiser la distance
+## Customize the distance
 
-La distance utilisée par le TAK est la distance de Hamming.
-`TIMESTAMP` par `TIMESTAMP`, elle attribue 1 si les traitements des 2 patients sont différents et 0 s'ils sont identiques, puis tous ces `1` sont sommés et le résultat est divisé par le nombre de `TIMESTAMP`.
+The distance used by TAK is the **Hamming distance**.
+`TIMESTAMP` by `TIMESTAMP`, it assigns 1 if the treatments of the 2 patients are different and 0 if they are identical, then all these `1`s are summed and the result is divided by the number of `TIMESTAMP`.
 
-Cette distance peut être modifiée, soit par une [distance précodée par `scipy`](https://docs.scipy.org/doc/scipy/reference/generated/scipy.spatial.distance.pdist.html), soit par une fonction maison.
+This distance can be modified, either by a [pre-coded distance by `scipy`](https://docs.scipy.org/doc/scipy/reference/generated/scipy.spatial.distance.pdist.html), or by a custom function.
 
-Par exemple, lorsque les patients de la cohorte ont des temps/périodes de suivi très différents, il peut être utile de mettre un poids plus faible sur leurs périodes "hors suivi" .
-Ou bien, lorsque 2 médicaments sont cliniquement "plus proches" (par exemple `Drug_A_MCO` et `Drug_A_HAD`), il peut être utile de mettre un poids plus fort sur leur distance avec d'autres médicaments.
+For example, when the patients in the cohort have very different follow-up times/periods, it may be useful to assign a lower weight to their "out of follow-up" periods.
+Or, when 2 drugs are clinically "closer" (for example `Drug_A_MCO` and `Drug_A_HAD`), it may be useful to assign a higher weight to their distance from other drugs.
 
 ```python
 import numpy as np
 
 def hamming_02(u, v):
-    """Métrique de distance compilée pour laquelle les instants impliquant
-    start (id 0), out (id 2) ou death (id 3) sont 5 fois moins pris en compte
-    dans le calcul de distance que les autres instants.
+    """Compiled distance metric for which timestamps involving
+    start (id 0), out (id 2) or death (id 3) are taken into account 5 times less
+    in the distance computation than other instants.
 
     Example:
     u             = [  0  |  0  |  0  |  5  |  2  |  2  ]
@@ -284,11 +207,11 @@ def hamming_02(u, v):
     d             =  0.2*5 / (1 + 0.2*5) =  1 / 2  =  0.5
     """
 
-    # parametres
+    # parameters
     coef = 0.2
-    id_low_dist = [0, 2, 3] # id des événements : ["start", "out", "death"]
+    id_low_dist = [0, 2, 3] # event ids: ["start", "out", "death"]
 
-    # hamming classique
+    # classic hamming
     hamming = u != v
 
     u_low_dist = np.isin(u, id_low_dist)
@@ -297,27 +220,27 @@ def hamming_02(u, v):
     weight = np.where(np.logical_or(u_low_dist, v_low_dist), coef, 1)
     hamming_weighted = np.multiply(hamming, weight)
 
-    # normalisation
+    # normalization
     res = hamming_weighted.sum()/weight.sum()
 
     return res
 ```
 
-!!! note "Note : `coef`"
-    Si `coef = 0`, alors la distance se calcule en "tout ou rien" : lorsque le patient est en start, out ou décès, il n'est plus pris en compte.
-    Sinon `coef` est un `float`, plus il est proche de 0, moins les événements de `id_low_dist` ont du poids dans la distance, plus il est grand, plus ils ont du poids.
-    Si `coef = 1`, nous revenons sur la distance de Hamming classique.
+!!! note "Note: `coef`"
+    If `coef = 0`, then the distance is computed as "all or nothing": when the patient is in start, out or death, they are no longer taken into account.
+    Otherwise, `coef` is a `float`, the closer it is to 0, the less weight the `id_low_dist` events have in the distance, the larger it is, the more weight they have.
+    If `coef = 1`, we return to the classic Hamming distance.
 
-!!! warning "Warning : `id utilisés`"
-    La distance se fait entre les IDs des événements, ainsi pensez à vérifier que dans tous les cas de figures les IDs indiqués dans votre fonction distance correspondent bien aux événements sur lesquels vous voulez customiser la distance (par exemple au moyen de `tak.dict_label_id`)
+!!! warning "Warning: `used ids`"
+    The distance is calculated between the event IDs, so make sure that in all cases the IDs indicated in your distance function correspond to the events you want to customize the distance for (for example using `tak.dict_label_id`)
 
-!!! note "Note : vectorisez !"
-    Travailler avec une distance customisée rend tous les calculs plus longs.
-    Il est très important d'éviter les boucles `for`, et donc de travailler en appel vectorisé (via des array numpy)
+!!! note "Note: vectorize!"
+    Working with a customized distance makes all calculations longer.
+    It is very important to avoid `for` loops, and therefore to work with vectorized calls (via numpy arrays)
 
-!!! note "Note : `numba`"
-    L'utilisation de `numba` (décorateur `@nb.njit`) permet d'accélérer le calcul (facteur de 4 sur une estimation).
-    Malheureusement `numba` ne reconnait pas `np.isin`, il faut donc écrire les choses de manière détournée si l'on veut utiliser numba (exemple ci-dessous).
+!!! note "Note: `numba`"
+    Using `numba` (decorator `@nb.njit`) speeds up the calculation (factor of 4 on an estimate).
+    Unfortunately, `numba` does not recognize `np.isin`, so you have to write things differently if you want to use numba (example below).
 
 ```python
 import numpy as np
@@ -325,9 +248,9 @@ import numba as nb
 
 @nb.njit
 def hamming_02_numba(u, v):
-    """Métrique de distance compilée pour laquelle les instants impliquant
-    start (id 0), out (id 2) ou death (id 3) sont 5 fois moins pris en compte
-    dans le calcul de distance que les autres instants.
+    """Compiled distance metric for which timestamps involving
+    start (id 0), out (id 2) or death (id 3) are taken into account 5 times less
+    in the distance computation than other instants.
 
     Example:
     u             = [  0  |  0  |  0  |  5  |  2  |  2  ]
@@ -338,10 +261,10 @@ def hamming_02_numba(u, v):
     d             =  0.2*5 / (1 + 0.2*5) =  1 / 2  =  0.5
     """
 
-    # parametres
+    # parameters
     coef = 0.2
 
-    # hamming classique
+    # classic hamming
     hamming = u != v
 
     u_low_dist = (u == 0) | (u == 2) | (u == 3)
@@ -350,47 +273,47 @@ def hamming_02_numba(u, v):
     weight = np.where(np.logical_or(u_low_dist, v_low_dist), coef, 1)
     hamming_weighted = np.multiply(hamming, weight)
 
-    # normalisation
+    # normalization
     res = hamming_weighted.sum()/weight.sum()
 
     return res
 ```
 
-Il peut aussi être intéressant d'augmenter le poids de l'alignement sur certaines parties de la fenêtre temporelle :
+It may also be interesting to increase the weight of alignment on certain parts of the time window:
 
 ```python
 import numpy as np
 
 def hamming_ponderation_around_end_of_line(u, v, time_end_line):
-    """Métrique de distance compilée pour laquelle les instants proches de time_end_line
-    sont pondérés pour avoir plus d'importance
+    """Compiled distance metric for which instants close to time_end_line
+    are weighted to have more importance
     """
 
-    # hamming classique
+    # classic hamming
     hamming = u != v
 
-    # ponderation
-    # on veut grandement favoriser les poids autour de t=0 sur le TAK (qui est en fait à time_end_line
-    # car le TAK ne prend pas d'evts négatifs en entrée)
+    # weighting
+    # we want to greatly favor weights around t=0 on the TAK (which is actually at time_end_line
+    # because TAK does not take negative events as input)
     weight = np.append(
-        np.logspace(0.25, 1, time_end_line),  # poids croissant de t=0 à time_end_line
+        np.logspace(0.25, 1, time_end_line),  # increasing weights from t=0 to time_end_line
         np.logspace(0.25, 1, len(u) - time_end_line)[
             ::-1
-        ],  # poids décroissant de t=time_end_line à la fin
+        ],  # decreasing weights from t=time_end_line to the end
     )
     hamming_weighted = np.multiply(hamming, weight)
 
-    # normalisation
+    # normalization
     res = hamming_weighted.sum() / weight.sum()
 
     return res
 ```
 
-## Sélectionner un sous-TAK
+## Select a sub-TAK
 
-Une fois le TAK entraîné, il est possible de ne sélectionner qu'une sous population à afficher.
+Once the TAK is trained, it is possible to select only a sub-population to display.
 
-Prenons l'exemple d'un TAK entraîné :
+Let's take the example of a trained TAK:
 
 ```python
     tak = TakBuilder(base).build()
@@ -401,23 +324,23 @@ Prenons l'exemple d'un TAK entraîné :
     tak_viz.get_plot()
 ```
 
-![TAK avant un split](assets/tak_split_init.svg)
+![TAK before a split](assets/tak_split_init.svg)
 
-Nous pouvons n'afficher que les patients compris dans la liste `range(100)` grâce à la méthode `split()`.
+We can display only the patients included in the list `range(100)` using the `split()` method.
 
 ```python
-    # Split : Only select patients between ID 0 and ID 100
+    # Split: Only select patients between ID 0 and ID 100
     tak_viz.split(list(range(100)))
     tak_viz.process_visualization()
     tak_viz.get_plot()
 ```
 
-![TAK après un split](assets/tak_split_sub.svg)
+![TAK after a split](assets/tak_split_sub.svg)
 
-!!! note "Note : `reset_split()`"
-    Pour réinitialiser l'objet `TakVisualizer`, il faut utiliser la méthode `reset_split()`.
+!!! note "Note: `reset_split()`"
+    To reset the `TakVisualizer` object, use the `reset_split()` method.
 
-Cette même méthode fonctionne sur un TAK comprenant plusieurs clusters.
+This same method works on a TAK with several clusters.
 
 ```python
     tak = TakBuilder(base).build()
@@ -428,9 +351,9 @@ Cette même méthode fonctionne sur un TAK comprenant plusieurs clusters.
     tak_viz.get_plot(add_sep=True)
 ```
 
-![TAK avant un split (clusters)](assets/tak_split_clusters_init.svg)
+![TAK before a split (clusters)](assets/tak_split_clusters_init.svg)
 
-L'utilisation de la méthode `split()` ne perturbe pas l'affichage des séparations.
+Using the `split()` method does not disrupt the display of separations.
 
 ```python
     tak_viz.split(list(range(100)))
@@ -438,11 +361,11 @@ L'utilisation de la méthode `split()` ne perturbe pas l'affichage des séparati
     tak_viz.get_plot(add_sep=True)
 ```
 
-![TAK après un split (clusters)](assets/tak_split_clusters_sub.svg)
+![TAK after a split (clusters)](assets/tak_split_clusters_sub.svg)
 
-## Visualiser le dendrogramme
+## Visualize the dendrogram
 
-Visualiser le dendrogramme peut être utile pour déterminer visuellement le nombre de clusters souhaité.
+Visualizing the dendrogram can be useful to visually determine the desired number of clusters.
 
 ```python
     tak_viz.get_plot(dendrogram=True)
@@ -450,122 +373,10 @@ Visualiser le dendrogramme peut être utile pour déterminer visuellement le nom
 
 ![TAK dendrogram](assets/tak_dendrogram.svg)
 
-Cette fonction a plus de sens avec `add_sep`, car on peut y mettre en relation les clusters trouvés avec les sous-arbres du dendrogramme.
+This function makes more sense with `add_sep`, as you can relate the clusters found to the dendrogram subtrees.
 
 ```python
     tak_viz.get_plot(add_sep=True, dendrogram=True)
 ```
 
 ![TAK dendrogram](assets/tak_dendrogram_with_sep.svg)
-
-!!! warning "Optimal ordering"
-    Le dendrogramme ne correspondra aux clusters affichés sur le tak que si global_optimal_ordering est à True dans le fit. En effet, l'optimal ordering normal réordonne les patients dans chaque cluster, mais sans changer le dendrogramme. 
-
-
-## Ajouter une couleur *"autre"* dans la visualisation
-
-Lorsque l'on a trop de diversité dans certaines zones de l'image résultante, on crée une couleur *autre* avec `_reduce_matrix()`.
-
-Il est possible de redéfinir la fonction `_reduce_matrix()` afin de griser les zones trop incertaines, et ainsi de ne pas biaiser
-le résultat fourni par l'image résultante.
-
-Ici on rajoute une nouvelle modalité à la variable `method` --> `mode_weighted_thresh`.
-Cette méthode permet de :
-- diminuer les poids de certains événements choisis
-- ne colorer une zone que si l'événement majoritaire représente plus de 50% des événements de la zone (après pondération)
-- ne colorer une zone que s'il y a moins de `N` événements distincts dans la zone
-
-Les zones qui ne remplissent pas ces critères seront colorés avec l'événement `autre`.
-
-!!! warning "code legacy"
-    Le code suivant est un snippet qui utilisait le code legacy du tak. Il n'a pas encore été retesté en mission, mais est utile à conserver si besoin de le réimplémenter. 
-
-```python
-import numpy as np
-
-def _reduce_matrix(mat, expected_sizes, method="mean"):
-    """Reduce the matrix to an expected size.
-
-    :param mat: matrice to reduce
-    :param expected_sizes: expected size (x,y)
-    :param method: aggregation method ('max', 'median' or 'mode')
-    """
-
-    [...]
-    list_events_less_important = [1,2,3,4,5] # événements dont on veut diminuer le poids
-    ponderation_less_important_events = 0.3 # Facteur par lequel on souhaite siminuer le poids des événements
-    nb_events_max_in_zone = 6
-    if method == "mode_weighted_thresh":
-        # On pondère les évènements les moins importants (in/out/etc) pour qu'ils pèsent moins que les autres dans la zone
-        # La zone prend la couleur de l'événement majoritaire :
-        # - Si l'événement majoritaire représente plus de la moitié des événements de la zone
-        # - S'il y a moins de `nb_events_max_in_zone` d'événements dans la zone
-        # Sinon, la zone prend la couleur "autre" d'id = 100)
-
-        result = np.fromiter(
-            (
-                np.bincount(
-                    _remove_nan_1d(
-                        padded_matrix.reshape(new_shape)[i, :, j, :].ravel()
-                    )[0].astype("int8"),
-                    weights=np.where(
-                        np.isin(
-                            _remove_nan_1d(
-                                padded_matrix.reshape(new_shape)[i, :, j, :].ravel()
-                            )[0].astype("int8"),
-                            list_events_less_important,
-                        ),
-                        ponderation_less_important_events,
-                        1,
-                    ),
-                ).argmax()
-                if (
-                np.bincount(
-                    _remove_nan_1d(
-                        padded_matrix.reshape(new_shape)[i, :, j, :].ravel()
-                    )[0].astype("int8"),
-                    weights=np.where(
-                        np.isin(
-                            _remove_nan_1d(
-                                padded_matrix.reshape(new_shape)[i, :, j, :].ravel()
-                            )[0].astype("int8"),
-                            list_events_less_important,
-                        ),
-                        ponderation_less_important_events,
-                        1,
-                    ),
-                ).max() > (
-                np.bincount(
-                    _remove_nan_1d(
-                        padded_matrix.reshape(new_shape)[i, :, j, :].ravel()
-                    )[0].astype("int8"),
-                    weights=np.where(
-                        np.isin(
-                            _remove_nan_1d(
-                                padded_matrix.reshape(new_shape)[i, :, j, :].ravel()
-                            )[0].astype("int8"),
-                            list_events_less_important,
-                        ),
-                        ponderation_less_important_events,
-                        1,
-                    ),
-                ).sum()/2)) # Plus de la moitier des événements de la zone après pondération
-                and ( len(
-                    np.unique(
-                        _remove_nan_1d(
-                            padded_matrix.reshape(new_shape)[i, :, j, :].ravel()
-                        )[0].astype("int8"),
-                    )
-                )
-                < nb_events_max_in_zone) # Mois d'événements  dans la zone que le seuil imposé
-                else 100 # id de "other"
-                for i, j in product(range(new_shape[0]), range(new_shape[2]))
-            ),
-            "int8",
-            expected_x * expected_y,
-        ).reshape(new_shape[0], new_shape[2])
-```
-#
-
-
-
