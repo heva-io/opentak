@@ -1,20 +1,24 @@
 # %%
+
 import pandas as pd
 
 from opentak import TakBuilder, TakVisualizer
 from opentak.generation_cohort_tak import GenerateCohortTAK
 from opentak.tak_theme import set_style
+from opentak.visualization import add_grid_on_tak_fig
 
 set_style()
 
 # %%
-
+RANDOM_STATE = 42
 
 NB_PATIENTS = 216
 NB_JOURS_END = 350
 
 # Event log generation
-base = GenerateCohortTAK(nb_patients=NB_PATIENTS, nb_days_end=NB_JOURS_END)
+base = GenerateCohortTAK(
+    nb_patients=NB_PATIENTS, nb_days_end=NB_JOURS_END, random_state=RANDOM_STATE
+)
 base.initialisation_dataframe(
     treatment_name="A",
     dose_mean=int(NB_JOURS_END / 10),
@@ -31,7 +35,9 @@ base = base.sort_values(by=["ID_PATIENT", "TIMESTAMP"])
 # Event log generation 2
 NB_JOURS_END_LONG = int(365.25 * 5)
 
-base_long = GenerateCohortTAK(nb_patients=NB_PATIENTS, nb_days_end=NB_JOURS_END_LONG)
+base_long = GenerateCohortTAK(
+    nb_patients=NB_PATIENTS, nb_days_end=NB_JOURS_END_LONG, random_state=RANDOM_STATE
+)
 base_long.initialisation_dataframe(
     treatment_name="A",
     dose_mean=int(NB_JOURS_END_LONG / 10),
@@ -115,10 +121,21 @@ tak_viz.graph_events_rep_on_tak(
     threshold_percent=0,
 ).show()
 
+# %%
+
 # Add grid to the tak
 tak_viz_grid = TakVisualizer(tak)
-tak_viz_grid.process_visualization(add_grid=True)
-tak_viz_grid.get_plot().write_image("docs/assets/tak_grid.svg")
+tak_viz_grid.process_visualization()
+fig = tak_viz_grid.get_plot()
+fig = add_grid_on_tak_fig(
+    fig,
+    grid = "xy",
+    params = {
+        "x":{"opacity": 1},
+        "y":{"opacity": 1}
+    }
+)
+fig.write_image("docs/assets/tak_grid.svg")
 
 # %%
 # Trouver les clusters
@@ -167,8 +184,11 @@ for num_cluster in list_clusters:
     # Processing of the array
     tak_viz.process_visualization(num_cluster=num_cluster)
 
+    n_pat_cluster = len(tak.list_ids_clusters[num_cluster])
     # Generating Plotly figure
-    fig = tak_viz.get_plot().update_layout(title_text=f"TAK cluster {num_cluster + 1}")
+    fig = tak_viz.get_plot().update_layout(
+        title_text=f"TAK cluster {num_cluster}, {n_pat_cluster} patients"
+    )
     fig.write_image(f"docs/assets/tak_n_clusters_{num_cluster}.svg")
 
 # %%
@@ -233,3 +253,5 @@ tak_viz.process_visualization()
 tak_viz.get_plot(add_sep=True, dendrogram=True).write_image(
     "docs/assets/tak_dendrogram_with_sep.svg"
 )
+
+# %%

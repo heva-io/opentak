@@ -7,7 +7,7 @@
 This algorithm is recommended when the population does not contain too many patients (< 8000 patients).
 
 ```python
-from tak import TakBuilder, TakVisualizer
+from opentak import TakBuilder, TakVisualizer
 
 tak_hca = TakBuilder(base).build()
 tak_hca.fit()
@@ -40,7 +40,7 @@ It can take different arguments:
 - The event name as an argument and the color as a value
 
 ```python
-from tak import TakBuilder, TakVisualizer
+from opentak import TakBuilder, TakVisualizer
 
 tak = TakBuilder(base).build()
 tak.fit()
@@ -63,7 +63,7 @@ tak_viz.get_plot()
 When calling the `TakVisualizer()` class, it is possible to pass a dictionary `dico_evt_for_legend` which allows to rename the event names in the legend.
 
 ```python
-from tak import TakBuilder, TakVisualizer
+from opentak import TakBuilder, TakVisualizer
 
 tak = TakBuilder(base).build()
 tak.fit()
@@ -86,8 +86,8 @@ It is also possible to change the parameters passed to these functions via `xgri
     `line_width = 0.5`, `line_dash = "dot"`, `line_color = "grey"`, `opacity = 0.5`
 
 ```python
-from tak import TakBuilder, TakVisualizer
-from tak.visualization import add_grid_on_tak_fig
+from opentak import TakBuilder, TakVisualizer
+from opentak.visualization import add_grid_on_tak_fig
 
 tak = TakBuilder(base).build()
 tak.fit()
@@ -97,15 +97,16 @@ tak_viz.process_visualization()
 fig = tak_viz.get_plot()
 fig = add_grid_on_tak_fig(
     fig,
-    add_xgrid=True,
-    add_ygrid=True,
-    xgrid_params={"opacity": 1},
-    ygrid_params={"opacity": 1}
+    grid = "xy",
+    params = {
+        "x":{"opacity": 1},
+        "y":{"opacity": 1}
+    }
 )
 fig
 ```
 
-![TAK grid](assets/tak_grid.png)
+![TAK grid](assets/tak_grid.svg)
 
 ### Calendar x axes
 
@@ -139,8 +140,10 @@ tak_viz.get_plot(unit_as_years=False)
 
 By specifying the number of clusters `n_clusters` as an argument to `fit`, it is possible to automatically find and display patient clusters.
 
+### Display clusters on one figure
+
 ```python
-from tak import TakBuilder, TakVisualizer
+from opentak import TakBuilder, TakVisualizer
 
 n_clusters = 3
 
@@ -179,6 +182,21 @@ figplotly_with_changed_line_extension_and_width.show()
 ```
 
 ![TAK clusters](assets/tak_clusters_lines.svg)
+
+### Display a specific cluster in a figure
+```python
+num_cluster = 1
+
+tak_viz.process_visualization(num_cluster=num_cluster)
+
+# Generating Plotly figure
+n_pat_cluster = len(tak.list_ids_clusters[num_cluster])
+# Generating Plotly figure
+fig = tak_viz.get_plot().update_layout(title_text=f"TAK cluster {num_cluster}, {n_pat_cluster} patients")fig.show()
+```
+![TAK clusters](assets/tak_n_clusters_1.svg)
+
+
 
 ## Customize the distance
 
