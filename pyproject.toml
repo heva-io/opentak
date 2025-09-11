@@ -64,7 +64,7 @@ ignore_missing_imports = true
 
 [tool.ruff.lint]
 select = ["ALL"]
-exclude = ["tests/**", "docs/**", "scripts/**"]
+exclude = ["tests/**", "docs/**", "scripts/**", "examples/**"]
 ignore = [
   "ANN",
   "BLE",
