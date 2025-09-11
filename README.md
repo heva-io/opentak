@@ -11,6 +11,7 @@
 
 
 **OpenTAK** is a python package for **clustering** and **visualizing** treatment sequences in a cohort. It aims to identify, cluster, and represent the different treatment sequences used, while quantifying the number of patients involved in each of these sequences.
+
 Under the hood, it runs on a Hierarchical Clustering Algorithm.  
 
 📖 Documentation: https://heva-io.github.io/opentak/latest/  
@@ -20,7 +21,7 @@ https://hevaweb.com/en/articles/tak-r-celebrates-its-4th-anniversary/120
 
 ## Installation
 
-To quickly get started with the package, run one of the following command:
+To get started with the package, run one of the following command:
 
 ```bash
 pip install opentak
@@ -92,10 +93,8 @@ figplotly.show()
 Contributions are welcome! To contribute:
 
 1. Fork the repository and create a new branch for your changes.
-2. Install the package dependencies using uv:
-    ```bash
-    pip install uv
-    ```
+2. Install the package dependencies using uv.
+First install uv by following the [official documentation guide](https://docs.astral.sh/uv/getting-started/installation/). Then run:
     ```
     uv sync --all-groups
     ```
@@ -106,12 +105,12 @@ Contributions are welcome! To contribute:
      - All tests pass with pytest
      - Ruff reports no linting errors when you run:
         ```
-        ruff format .
-        ruff check .
+        uv run ruff format .
+        uv run ruff check .
         ```
     - Mypy reports no type errors when you run:
         ```
-        mypy opentak
+        uv run mypy opentak
         ```
 
 5. Open a pull request with a clear description of your changes and reference any related issues when possible.
