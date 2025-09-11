@@ -60,7 +60,9 @@ base_template = go.layout.Template(
         plot_bgcolor=BACKGROUND,
         paper_bgcolor=BACKGROUND,
         colorway=palettes.qualitative.default,
-        colorscale={
+        # type ignore because colorscale cannot be a dictionnary according to plotly-stubs,
+        # despite the fact that it works perfectly at runtime.
+        colorscale={  # type: ignore[arg-type]
             "sequential": palettes.sequential.light_blues,
             "diverging": palettes.diverging.onoff,
         },
