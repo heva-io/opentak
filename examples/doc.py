@@ -128,12 +128,7 @@ tak_viz_grid = TakVisualizer(tak)
 tak_viz_grid.process_visualization()
 fig = tak_viz_grid.get_plot()
 fig = add_grid_on_tak_fig(
-    fig,
-    grid = "xy",
-    params = {
-        "x":{"opacity": 1},
-        "y":{"opacity": 1}
-    }
+    fig, grid="xy", params={"x": {"opacity": 1}, "y": {"opacity": 1}}
 )
 fig.write_image("docs/assets/tak_grid.svg")
 
