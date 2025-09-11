@@ -1,3 +1,8 @@
+import contextlib
+import dataclasses
+
+import matplotlib as mpl
+import plotly.io as pio
 from plotly import graph_objects as go
 
 from opentak.tak_theme import palettes
@@ -76,3 +81,20 @@ base_template = go.layout.Template(
         template={"data": {"heatmap": [{"autocolorscale": True}]}},
     )
 )
+
+pio.templates["tak_theme"] = base_template
+
+
+def convert_palettes_to_mpl():
+    for palette_collection in (palettes.sequential, palettes.diverging):
+        for name, palette in dataclasses.asdict(palette_collection).items():
+            cmap = mpl.colors.LinearSegmentedColormap.from_list(
+                name, [p[1] for p in palette]
+            )
+            mpl.colormaps.register(cmap=cmap)
+            rev = cmap.reversed(name=f"{cmap.name}_r")
+            mpl.colormaps.register(cmap=rev)
+
+
+with contextlib.suppress(ImportError):
+    convert_palettes_to_mpl()
