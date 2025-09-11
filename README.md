@@ -44,56 +44,50 @@ The sequences are automatically ordered and clustered by similarity.
 👉 Check out the full [documentation](https://heva-io.github.io/opentak/latest/) for more details.
 
 ```python
-import pandas as pd
-from tak import TakBuilder, TakVisualizer
+from opentak import TakBuilder, TakVisualizer
+from opentak.generation_cohort_tak import GenerateCohortTAK
 
-evtlog = pd.DataFrame(
-    [
-        [0, 0, "in"],
-        [0, 0, "treatmentA"],
-        [0, 2, "treatmentB"],
-        [0, 6, "out"],
-        [1, 0, "in"],
-        [1, 0, "treatmentA"],
-        [1, 3, "chemotherapy"],
-        [1, 7, "death"],
-        [2, 0, "in"],
-        [2, 0, "treatmentA"],
-        [2, 4, "chemotherapy"],
-        [2, 8, "out"],
-        [3, 0, "in"],
-        [3, 0, "treatmentA"],
-        [3, 5, "chemotherapy"],
-        [3, 9, "out"],
-        [4, 0, "in"],
-        [4, 0, "treatmentA"],
-        [4, 3, "treatmentB"],
-        [4, 7, "out"],
-        [6, 0, "in"],
-        [6, 0, "treatmentA"],
-        [6, 6, "chemotherapy"],
-        [6, 10, "out"],
-    ],
-    columns=["ID_PATIENT","TIMESTAMP","EVT"],
+NB_PATIENTS = 400
+NB_JOURS_END = 370
+n_clusters = 3
+
+# Event log generation
+evtlog = GenerateCohortTAK(
+    nb_patients=NB_PATIENTS, nb_days_end=NB_JOURS_END, random_state=42
 )
+evtlog.initialisation_dataframe(
+    treatment_name="Treatment A",
+    dose_mean=int(NB_JOURS_END / 10),
+    dose_std=int(NB_JOURS_END / 25),
+)
+evtlog.add_switch_gaussien("Treatment B")
+evtlog = evtlog.add_in_out()
+evtlog = evtlog.sort_values(by=["ID_PATIENT", "TIMESTAMP"])
 
+# TAK builder 
 tak = TakBuilder(evtlog).build()
-tak.fit(n_clusters = 2)
+tak.fit(n_clusters=n_clusters)
 
+# TAK visualizer
 tak_viz = TakVisualizer(tak)
 tak_viz.process_visualization()
-
-figplotly = tak_viz.get_plot(add_sep=True)
-figplotly.update_layout(height=400, width=700)
+figplotly = tak_viz.get_plot(add_sep=True, unit_as_months=True, nb_months=2)
+figplotly.update_layout(height=500, width=700)
 figplotly.show()
 ```
+You should obtain the following visualization.
 
+<p align="center">
+  <img src="docs/assets/tak_quickstart.png" alt="Logo TAK" width="600"/>
+</p>
+
+You can explore the `examples` folder to see additional applications on various event logs.
 
 ## Contributing
 Contributions are welcome! To contribute:
 
 1. Fork the repository and create a new branch for your changes.
-2. Install the package dependencies using uv.
+2. Install the package dependencies using uv.  
 First install uv by following the [official documentation guide](https://docs.astral.sh/uv/getting-started/installation/). Then run:
     ```
     uv sync --all-groups
