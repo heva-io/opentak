@@ -1207,7 +1207,7 @@ def add_grid_on_tak_fig(
         add_grid_line = grid_functions.get(dim)
         if add_grid_line is None:
             continue
-        
+
         selected_axis_dim = {"x": xaxis, "y": yaxis}
         # Add grid lines for all valid tick values
         for val in fig_cop["layout"][selected_axis_dim[dim]]["tickvals"]:
