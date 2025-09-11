@@ -90,4 +90,4 @@ def set_style() -> None:
     """Set plotly default style to 'tak_theme'."""
     pio.templates.default = "tak_theme"
     with contextlib.suppress(ImportError):
-        plt.style.use("tak_theme.heva")  # type: ignore[attr-defined]
+        plt.style.use("opentak.tak_theme.mpl_tak")  # type: ignore[attr-defined]
