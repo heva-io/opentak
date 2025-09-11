@@ -1,7 +1,7 @@
 import contextlib
 import dataclasses
-import matplotlib as mpl
 
+import matplotlib as mpl
 import plotly.io as pio
 from plotly import graph_objects as go
 
