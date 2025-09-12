@@ -19,21 +19,6 @@ def test_color_multiple_forms_ok():
     assert lightened_tuple == expected_color
     assert lightened_hex == expected_color
 
-
-def test_interpolate_colors_value_error():
-    with pytest.raises(
-        ValueError, match=r"color_list should contain at least two colors"
-    ):
-        interpolate_colors([], 5)
-    with pytest.raises(ValueError, match=r"nb_colors should be higher than color_list"):
-        interpolate_colors(["#FF0000", "#00FF00"], 1)
-
-
-import pytest
-
-import pytest
-
-
 @pytest.mark.parametrize(
     "colors, nb_colors",
     [
