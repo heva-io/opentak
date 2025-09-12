@@ -19,6 +19,7 @@ def test_color_multiple_forms_ok():
     assert lightened_tuple == expected_color
     assert lightened_hex == expected_color
 
+
 @pytest.mark.parametrize(
     "colors, nb_colors",
     [
