@@ -1,6 +1,6 @@
 [project]
 name = "opentak"
-version = "0.0.1"
+version = "0.1.0"
 description = "TODO"
 authors = [
   { name="Marie-Ange RASENDRA", email="marie-ange.rasendra@heva-data.com" },
