@@ -54,7 +54,7 @@ jobs:
             exit 1
           fi
           echo "VERSION=$VERSION" >> "$GITHUB_OUTPUT"
-          echo "MESSAGE=$(git log -1 --pretty=%B)" >> "$GITHUB_OUTPUT"
+          echo "MESSAGE=$(git log -1 --pretty=%B | head -n 1)" >> "$GITHUB_OUTPUT"
 
       - name: Create release
         uses: ncipollo/release-action@v1
