@@ -27,6 +27,13 @@ dependencies = [
   "kaleido>=1.0.0, <2",
 ]
 
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["opentak"]
+
 [project.urls]
 Homepage = "https://heva-io.github.io/opentak/latest/"
 Documentation = "https://heva-io.github.io/opentak/latest/"
