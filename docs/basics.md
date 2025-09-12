@@ -21,13 +21,13 @@ The base table must follow this format:
     - Each patient must have an `in` as the first event
     - Each patient must have an `out` as the last event
     - A patient cannot have more than one `in` or `out` event
-    - A patient cannot have multiple events on the same date
+    - A patient cannot have multiple events on the same TIMESTAMP
     - TIMESTAMP must be an integer
     - ID_PATIENT can either be an integer or a string
 
 ### Initialization and Training
 
-This code snippet creates a `TakBuilder` object and trains it.
+This code snippet creates a `TakBuilder` object and fits it.
 
 ```python
 from tak import TakBuilder
@@ -46,9 +46,9 @@ tak.fit(n_clusters = 3)
         ```
 The clusters are stored in the attribute `tak.list_ids_cluster`
 
-For more details on the implementation, refer to advanced usage
+For more details on the implementation, refer to the advanced usage section.
 
-!!! question "What is the execution time depending on the number of patients?"
+!!! question "Does the execution time depend on the number of patients ?"
     The execution time depends on many parameters, especially the number of patients, but also the observation period.
     Using custom distances also drastically increases calculation time.
     Simulations on simulated datasets give fairly fast results:   
@@ -63,7 +63,7 @@ For more details on the implementation, refer to advanced usage
 Simple example
 
 ```python
-from tak import TakVisualizer
+from opentak import TakVisualizer
 
 tak_viz = TakVisualizer(tak)
 tak_viz.process_visualization()
@@ -72,7 +72,7 @@ tak_viz.process_visualization()
 Example with color update
 
 ```python
-from tak import TakVisualizer
+from opentak import TakVisualizer
 
 tak_viz = TakVisualizer(tak)
 tak_viz.update_colors(dict_new_colors={"A": "rgb(255, 114, 64)"}, B="#5E5A85")
@@ -93,7 +93,7 @@ figplotly.show(config=config)
     To automatically apply the optimal config, you can import `nice_plotly_show`
 
     ```python
-    from tak.visualization import nice_plotly_show
+    from opentak.visualization import nice_plotly_show
 
     figplotly = tak_viz.get_plot()
     nice_plotly_show(figplotly)

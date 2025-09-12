@@ -192,7 +192,8 @@ tak_viz.process_visualization(num_cluster=num_cluster)
 # Generating Plotly figure
 n_pat_cluster = len(tak.list_ids_clusters[num_cluster])
 # Generating Plotly figure
-fig = tak_viz.get_plot().update_layout(title_text=f"TAK cluster {num_cluster}, {n_pat_cluster} patients")fig.show()
+fig = tak_viz.get_plot().update_layout(title_text=f"TAK cluster {num_cluster}, {n_pat_cluster} patients")
+fig.show()
 ```
 ![TAK clusters](assets/tak_n_clusters_1.svg)
 
