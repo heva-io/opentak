@@ -30,7 +30,7 @@ The base table must follow this format:
 This code snippet creates a `TakBuilder` object and fits it.
 
 ```python
-from tak import TakBuilder
+from opentak import TakBuilder
 
 tak = TakBuilder(base).build()
 tak.fit(n_clusters = 3)
