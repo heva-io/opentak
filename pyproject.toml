@@ -37,6 +37,7 @@ Issues = "https://github.com/heva-io/opentak/issues"
 dev = [
     "mypy>=1.17.0, <2",
     "pytest>=8.4.1, <9",
+    "pytest-cov>=7.0.0",
     "ruff>=0.12.3, <1",
     "pandas-stubs>=2.2.2.240603, <3.0.0",
     "scipy-stubs>=1.15.3.0",
@@ -64,7 +65,7 @@ ignore_missing_imports = true
 
 [tool.ruff.lint]
 select = ["ALL"]
-exclude = ["tests/**", "docs/**", "scripts/**"]
+exclude = ["tests/**", "docs/**", "scripts/**", "examples/**"]
 ignore = [
   "ANN",
   "BLE",

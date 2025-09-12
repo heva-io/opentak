@@ -40,8 +40,8 @@ plugins:
       nav_file: SUMMARY.md
 nav:
   - Home: index.md
-  - Usage basique: basics.md
-  - Usage avancé: advanced.md
+  - Basic usage: basics.md
+  - Advanced usage: advanced.md
   - API Reference: reference/
 theme:
   name: material

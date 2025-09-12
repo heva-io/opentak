@@ -1173,7 +1173,8 @@ def add_grid_on_tak_fig(
 
     # Pre-compute subplot configuration
     multiple_plots = fig.layout.grid.columns is not None
-    axis = "xaxis2" if multiple_plots else "xaxis"
+    xaxis = "xaxis2" if multiple_plots else "xaxis"
+    yaxis = "yaxis2" if multiple_plots else "yaxis"
     col = 2 if multiple_plots else 1
 
     # Define grid line functions mapping
@@ -1207,8 +1208,9 @@ def add_grid_on_tak_fig(
         if add_grid_line is None:
             continue
 
+        selected_axis_dim = {"x": xaxis, "y": yaxis}
         # Add grid lines for all valid tick values
-        for val in fig_cop["layout"][axis]["tickvals"]:
+        for val in fig_cop["layout"][selected_axis_dim[dim]]["tickvals"]:
             if val <= val_max:
                 line_params = default_params.copy()
                 line_params[dim] = val
