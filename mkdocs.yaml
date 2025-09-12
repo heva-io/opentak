@@ -1,0 +1,58 @@
+site_name: opentak
+site_url: https://heva-io.github.io/opentak/latest/
+repo_name: OpenTAK
+repo_url: https://github.com/heva-io/opentak
+watch:
+  - opentak
+  - docs
+
+markdown_extensions:
+  - toc:
+      permalink: true
+  - admonition
+  - attr_list
+  - pymdownx.highlight
+  - pymdownx.inlinehilite
+  - pymdownx.superfences
+
+plugins:
+  - autorefs
+  - mkdocstrings:
+      default_handler: python
+      handlers:
+        python:
+          options:
+            show_root_full_path: false
+            show_object_full_path: false
+            merge_init_into_class: true
+            heading_level: 3
+            show_category_heading: true
+            members_order: source
+            group_by_category: true
+            docstring_style: sphinx
+  - search
+  - macros:
+      include_dir: ./
+  - gen-files:
+      scripts:
+        - scripts/gen_ref_pages.py
+  - literate-nav:
+      nav_file: SUMMARY.md
+nav:
+  - Home: index.md
+  - Basic usage: basics.md
+  - Advanced usage: advanced.md
+  - API Reference: reference/
+theme:
+  name: material
+  logo: assets/logo.png
+  palette:
+    scheme: heva
+  font:
+    text: Roboto
+    code: Fira Code
+  icon:
+    repo: fontawesome/brands/github
+extra:
+  version:
+    provider: mike

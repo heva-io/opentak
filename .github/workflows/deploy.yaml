@@ -1,0 +1,73 @@
+name: Deploy
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  # Publish documentation as github pages
+  publish-doc:
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+
+      - name: Install dependencies
+        run: uv sync --no-dev --group doc
+
+      - name: Build doc
+        run: |
+          git config --global user.name "Docs Deploy"
+          git config --global user.email "docs.deploy@heva-data.com" 
+          uv run mike deploy --config-file mkdocs.yaml -u --push $(uv version --short) latest
+
+  # Create a github tag and release based on last commit and current python project version
+  # Publish package to Pypi
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+
+      - name: Check version
+        id: version
+        run: |
+          VERSION=$(uv version --short)
+          TAG_EXISTS=0
+          git tag -l | grep -P "^$VERSION$" || TAG_EXISTS=1
+          if [[ $TAG_EXISTS == 0 ]];
+          then
+            echo "::error::Tag $VERSION already exists. Please increase project version in pyproject.toml."
+            exit 1
+          fi
+          echo "VERSION=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "MESSAGE=$(git log -1 --pretty=%B)" >> "$GITHUB_OUTPUT"
+
+      - name: Create release
+        uses: ncipollo/release-action@v1
+        with:
+          body: |
+            # Release ${{ steps.version.outputs.VERSION }}
+
+            ${{ steps.version.outputs.MESSAGE }}
+          commit: main
+          tag: ${{ steps.version.outputs.VERSION }}
+
+      - name: Build
+        run: uv build
+
+      - name: Deploy to Pypi
+        run: uv publish --publish-url ${{ vars.PYPI_URL }} --token ${{ secrets.PYPI_TOKEN }}

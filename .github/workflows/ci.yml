@@ -1,0 +1,79 @@
+name: CI
+
+on: pull_request
+
+jobs:
+  check-version:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+
+      - name: Check version
+        run: |
+          VERSION=$(uv version --short)
+          status=0
+          git tag -l | grep -P "^$VERSION$" || status=1
+          if [[ $status == 0 ]];
+          then
+            echo "::error::Tag $VERSION already exists. Please increase project version in pyproject.toml."
+            exit 1
+          fi
+
+  python-ci:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: true
+      matrix:
+        version: ["3.10", "3.11", "3.12", "3.13"]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Setup python ${{ matrix.version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: "${{ matrix.version }}"
+          check-latest: true
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+
+      - name: Install dependencies
+        run: uv sync --only-dev
+
+      - name: Formatter
+        run: uv run ruff format --check
+
+      - name: Linter
+        run: uv run ruff check
+
+      - name: Type check
+        run: uv run mypy opentak
+
+      - name: Tests
+        run: uv run pytest
+
+  doc-ci:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+
+      - name: Install dependencies
+        run: uv sync --no-dev --group doc
+
+      - name: Check doc
+        run: uv run mkdocs build --strict
